@@ -6,6 +6,7 @@
 #define SOLVEUR_VARIABLE_H
 
 #include <iostream>
+#include <algorithm>
 
 template <typename T>
 class SLRVar
@@ -27,6 +28,7 @@ public:
 
     bool operator==(const SLRVar<T> &) const;
     bool operator<(const SLRVar<T> &) const;
+    int operator[](const std::vector<SLRVar<T>> &) const;
 
 };
 

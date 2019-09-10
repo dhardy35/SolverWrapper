@@ -11,6 +11,8 @@
 
 #include "Variable.h"
 
+#define RAW 0
+#define COLUMN 1
 #define SLR_MINIMIZE 1
 #define SLR_MAXIMIZE -1
 
@@ -21,11 +23,24 @@ template <typename T>
 class SLRModel
 {
 private:
-    std::vector<SLRVar<T>> __varsVector;
+    std::vector<SLRVar<T>>  _varsVector;
+    int                     _nbVar;
+
+#ifdef OSQP
+    c_float         *_quadricCoeffs;
+    c_float         *_linearCoeffs;
+    c_int           **_coeffsPositions;
+    OSQPWorkspace *_work;
+    OSQPSettings  _settings;
+    OSQPData      _data;
+    int             _quadricNb;
+#endif
 
 public:
-    void printExpression(const SLRExpr<T> &expr);
-    void setObjective(const SLRExpr<T> &, int goal = 0);
+    SLRModel();
+    void        printExpression(const SLRExpr<T> &expr);
+    int         setObjective(const SLRExpr<T> &, int goal = 0);
+    int         addConstr(const SLRExpr<T> &, const std::string &);
     SLRVar<T>   addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name);
 
 

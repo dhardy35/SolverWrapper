@@ -24,7 +24,9 @@ int main() {
     SLRVar<float> y = model.addVar(0.0, 1.0, 0.0, "y");
 
 
-    model.setObjective(4 * x + 3 * y * y + 2 * x + x * x, SLR_MAXIMIZE);
+    model.setObjective(4 * x * x + 2 * x * y + 2 * y * y + x + y, SLR_MAXIMIZE);
+    model.addConstr(4 * x * x + 2 * x * y + 2 * y * y + x + y, "c0");
+
 
     return 0;
 }

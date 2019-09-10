@@ -1,0 +1,8 @@
+//
+// Created by adrien_bedel on 10/09/19.
+//
+
+#ifndef SOLVEUR_CONSTRAINTEXPRESSION_H
+#define SOLVEUR_CONSTRAINTEXPRESSION_H
+
+#endif //SOLVEUR_CONSTRAINTEXPRESSION_H

@@ -44,3 +44,9 @@ bool SLRVar<T>::operator<(const SLRVar<T> &var) const
 {
     return (_name < var.getName());
 }
+
+template <typename T>
+int SLRVar<T>::operator[](const std::vector<SLRVar<T>> &vars) const
+{
+    return ((int)std::distance(vars.begin(), std::find(vars.begin(), vars.end(), *this)));
+}
