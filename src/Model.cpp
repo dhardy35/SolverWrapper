@@ -99,6 +99,7 @@ int SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
     {
         _coeffsPositions[COLUMN][i] += _coeffsPositions[COLUMN][i - 1];
     }
+    return (1);
 }
 
 template <typename T>

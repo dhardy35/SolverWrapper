@@ -2,15 +2,8 @@
 // Created by adrien_bedel on 09/09/19.
 //
 
-#include <algorithm>
 #include "../include/Expression.h"
 
-
-template <class T>
-SLRExpr<T>::SLRExpr() : _varIndex(0)
-{
-_coeffs.push_back(1);
-}
 
 template <class T>
 SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0)

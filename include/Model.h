@@ -15,6 +15,7 @@
 #define COLUMN 1
 #define SLR_MINIMIZE 1
 #define SLR_MAXIMIZE -1
+enum ConstrSign {INF, SUP, EQUAL};
 
 template <class T> class SLRExpr;
 
@@ -30,9 +31,9 @@ private:
     c_float         *_quadricCoeffs;
     c_float         *_linearCoeffs;
     c_int           **_coeffsPositions;
-    OSQPWorkspace *_work;
-    OSQPSettings  _settings;
-    OSQPData      _data;
+    OSQPWorkspace   *_work;
+    OSQPSettings    _settings;
+    OSQPData        _data;
     int             _quadricNb;
 #endif
 

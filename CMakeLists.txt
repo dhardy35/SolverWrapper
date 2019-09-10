@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.1)
 project(Solveur)
 
-add_executable(${PROJECT_NAME} src/main.cpp include/Model.h include/Variable.h include/Expression.h include/ConstraintExpression.h src/ConstraintExpression.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp include/Model.h include/Variable.h include/Expression.h include/ConstraintExpression.h)
 
 #SLR
 include_directories(include/)

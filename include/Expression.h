@@ -8,7 +8,7 @@
 #include "Variable.h"
 #include "Model.h"
 
-template <class T> class SLRExpr;
+template <typename T> class SLRExpr;
 
 
 template <typename T> SLRExpr<T> operator*(const SLRVar<T> &x, const SLRVar<T> &y);
@@ -18,7 +18,7 @@ template <typename T> SLRExpr<T> operator+(const double &, SLRExpr<T> );
 template <typename T> SLRExpr<T> operator+(const SLRVar<T> &, SLRExpr<T> );
 template <typename T> SLRExpr<T> operator+(const SLRVar<T> &, const SLRVar<T> &);
 
-template <class T>
+template <typename T>
 class SLRExpr
 {
 private:
@@ -37,7 +37,7 @@ public:
 
     friend class SLRModel<T>;
 
-    SLRExpr();
+    SLRExpr() = delete;
 
     friend SLRExpr<T> operator*<>(const SLRVar<T> &, const SLRVar<T> &);
     friend SLRExpr<T> operator*<>(const double &, const SLRVar<T> &);
