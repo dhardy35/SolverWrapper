@@ -13,10 +13,9 @@
 #include "Variable.h"
 
 
-#define RAW 0
-#define COLUMN 1
 #define SLR_MINIMIZE 1
 #define SLR_MAXIMIZE -1
+
 enum ConstrSign {INF, SUP, EQUAL};
 
 template <class T> class SLRExpr;
@@ -30,14 +29,20 @@ private:
     int                     _nbVar;
 
 #ifdef OSQP
+    std::vector<double>                 _lowerBound;
+    std::vector<double>                 _upperBound;
+    std::vector<std::vector<double>>    _constrCoeffs;
     c_float         *_quadricCoeffs;
     c_float         *_linearCoeffs;
-    c_int           **_coeffsPositions;
+    c_int           *_coeffsRaws;
+    c_int           *_coeffsColumns;
     OSQPWorkspace   *_work;
     OSQPSettings    _settings;
     OSQPData        _data;
     int             _quadricNb;
 #endif
+
+    void updateVariableConstraints();
 
 public:
     SLRModel();
@@ -46,6 +51,7 @@ public:
     int         setObjective(const SLRExpr<T> &, int goal = 0);
     int         addConstr(const SLRConstrExpr<T> &, const std::string &);
     SLRVar<T>   addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name);
+    void        optimize();
 
 
 };
