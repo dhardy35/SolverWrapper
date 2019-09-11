@@ -8,8 +8,6 @@
 #include "Expression.h"
 
 
-template <typename T> class SLRConstrExpr;
-
 template <typename T> SLRConstrExpr<T> operator<=(const SLRExpr<T> &, const SLRExpr<T> &);
 template <typename T> SLRConstrExpr<T> operator>=(const SLRExpr<T> &, const SLRExpr<T> &);
 template <typename T> SLRConstrExpr<T> operator==(const SLRExpr<T> &, const SLRExpr<T> &);
@@ -29,14 +27,14 @@ class SLRConstrExpr
 private:
     ConstrSign _sign;
     SLRExpr<T>  _expr;
-    float       _constr;
+    double       _constr;
 
 public:
     SLRConstrExpr() = delete;
     SLRConstrExpr(const SLRExpr<T> &, const SLRExpr<T> &, const ConstrSign &);
     SLRConstrExpr(const SLRExpr<T> &, const double &, const ConstrSign &);
 
-    friend class SLRExpr<T>;
+    friend class SLRModel<T>;
 
     friend SLRConstrExpr<T> operator<=<>(const SLRExpr<T> &, const SLRExpr<T> &);
     friend SLRConstrExpr<T> operator>=<>(const SLRExpr<T> &, const SLRExpr<T> &);

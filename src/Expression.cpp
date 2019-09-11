@@ -6,7 +6,7 @@
 
 
 template <class T>
-SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0)
+SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0), _constant(0)
 {
     _coeffs.push_back(1);
     _vars.push_back(std::vector<SLRVar<T>>());
@@ -14,7 +14,7 @@ SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0)
 }
 
 template <class T>
-SLRExpr<T>::SLRExpr(const SLRVar<T> &x, const double &coeff) : _varIndex(0)
+SLRExpr<T>::SLRExpr(const SLRVar<T> &x, const double &coeff) : _varIndex(0), _constant(0)
 {
     _coeffs.push_back(coeff);
     _vars.push_back(std::vector<SLRVar<T>>());
@@ -22,11 +22,12 @@ SLRExpr<T>::SLRExpr(const SLRVar<T> &x, const double &coeff) : _varIndex(0)
 }
 
 template <class T>
-SLRExpr<T>::SLRExpr(const SLRVar<T> &x, const SLRVar<T> &y) : _varIndex(0)
+SLRExpr<T>::SLRExpr(const SLRVar<T> &x, const SLRVar<T> &y) : _varIndex(0), _constant(0)
 {
     _coeffs.push_back(1);
     _vars.push_back(std::vector<SLRVar<T>>());
     _vars.at(_varIndex).push_back(x);
+    // sort in alphabetical order
     if (x < y)
         _vars.at(_varIndex).push_back(y);
     else
@@ -85,6 +86,7 @@ template <typename T>
 SLRExpr<T> SLRExpr<T>::operator*(const SLRVar<T> &x)
 {
     int i;
+    // add variable in the right alphabetical place
     for (i = 0; i < _vars.at(_varIndex).size()
     && _vars.at(_varIndex)[i] < x; i++) {};
     _vars.at(_varIndex).insert(_vars.at(_varIndex).begin() + i, x);
@@ -109,6 +111,7 @@ SLRExpr<T> SLRExpr<T>::operator+(const SLRVar<T> &x)
     return *this;
 }
 
+// fuse two expressions
 template <typename T>
 SLRExpr<T> SLRExpr<T>::operator+(const SLRExpr<T> &expr)
 {
@@ -119,6 +122,8 @@ SLRExpr<T> SLRExpr<T>::operator+(const SLRExpr<T> &expr)
     return *this;
 }
 
+// simplify expression
+// ex : 2x + 2x will be 4x
 template <typename T>
 void    SLRExpr<T>::simplify()
 {

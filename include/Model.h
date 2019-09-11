@@ -9,7 +9,9 @@
 #include <vector>
 #include <string>
 
+
 #include "Variable.h"
+
 
 #define RAW 0
 #define COLUMN 1
@@ -18,7 +20,7 @@
 enum ConstrSign {INF, SUP, EQUAL};
 
 template <class T> class SLRExpr;
-
+template <typename T> class SLRConstrExpr;
 
 template <typename T>
 class SLRModel
@@ -39,9 +41,10 @@ private:
 
 public:
     SLRModel();
-    void        printExpression(const SLRExpr<T> &expr);
+    void        printExpression(const SLRExpr<T> &) const;
+    void        printExpression(const SLRConstrExpr<T> &) const;
     int         setObjective(const SLRExpr<T> &, int goal = 0);
-    int         addConstr(const SLRExpr<T> &, const std::string &);
+    int         addConstr(const SLRConstrExpr<T> &, const std::string &);
     SLRVar<T>   addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name);
 
 

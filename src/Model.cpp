@@ -2,9 +2,7 @@
 // Created by adrien_bedel on 09/09/19.
 //
 
-#include <Expression.h>
 #include "Model.h"
-#include "Expression.h"
 
 
 template <typename T>
@@ -16,9 +14,9 @@ SLRModel<T>::SLRModel() : _nbVar(0)
 }
 
 template <typename T>
-void SLRModel<T>::printExpression(const SLRExpr<T> &expr)
+void SLRModel<T>::printExpression(const SLRExpr<T> &expr) const
 {
-    std::cout << "Expression is : ";
+    std::cout << "Expression : ";
     for (int i = 0; i <= expr._varIndex; i++)
     {
         if (expr._coeffs[i] != 1)
@@ -32,7 +30,24 @@ void SLRModel<T>::printExpression(const SLRExpr<T> &expr)
             std::cout << "+";
         std::cout << " ";
     }
+    if (expr._constant != 0)
+        std::cout << "+ " << expr._constant;
     std::cout << std::endl;
+}
+
+template <typename T>
+void SLRModel<T>::printExpression(const SLRConstrExpr<T> &constrExpr) const
+{
+    std::cout << "Constraint : " << std::endl << " - ";
+    printExpression(constrExpr._expr);
+    std::cout << " - Sign       : ";
+    if (constrExpr._sign == INF)
+        std::cout << "<=";
+    else if (constrExpr._sign == SUP)
+        std::cout << ">=";
+    else if (constrExpr._sign == EQUAL)
+        std::cout << "==";
+    std::cout << std::endl << " - Constraint : " << constrExpr._constr << std::endl;
 }
 
 template <typename T>
@@ -99,18 +114,20 @@ int SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
     {
         _coeffsPositions[COLUMN][i] += _coeffsPositions[COLUMN][i - 1];
     }
+
+    printExpression(expr);
     return (1);
 }
 
 template <typename T>
-int         SLRModel<T>::addConstr(const SLRExpr<T> &expr, const std::string &name)
+int         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
 {
 
+    printExpression(constrExpr);
 
 
 
-
-    c_float A_x[4] = {1.0, 1.0, 1.0, 1.0, };
+    /*c_float A_x[4] = {1.0, 1.0, 1.0, 1.0, };
     c_int A_nnz = 4;
     c_int A_i[4] = {0, 1, 0, 2, };
     c_int A_p[3] = {0, 2, 4, };
@@ -148,7 +165,8 @@ int         SLRModel<T>::addConstr(const SLRExpr<T> &expr, const std::string &na
 
     std::cout << _work->solution[0].x[0] << " " << _work->solution[0].x[1] << std::endl;
     // Cleanup
-    return exitflag;
+    return exitflag;*/
+    return (1);
 }
 
 #endif
