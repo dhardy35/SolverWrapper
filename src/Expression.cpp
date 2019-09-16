@@ -98,6 +98,9 @@ SLRExpr<T> SLRExpr<T>::operator*(const SLRVar<T> &x)
     for (i = 0; i < _vars.at(_varIndex).size()
     && _vars.at(_varIndex)[i] < x; i++) {};
     _vars.at(_varIndex).insert(_vars.at(_varIndex).begin() + i, x);
+    if (_vars.at(_varIndex).size() > 2)
+        throw SLRException(2, "SLRExpr::operator*(SLRvar)", "three dimensional is not allowed");
+
     return *this;
 }
 

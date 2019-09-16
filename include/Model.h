@@ -17,6 +17,7 @@
 #endif
 
 #include "Variable.h"
+#include "SLRException.h"
 
 
 #define SLR_MINIMIZE 1
@@ -65,8 +66,8 @@ private:
 public:
     void        printExpression(const SLRExpr<T> &) const;
     void        printExpression(const SLRConstrExpr<T> &) const;
-    int         setObjective(const SLRExpr<T> &, int goal = 0);
-    int         addConstr(const SLRConstrExpr<T> &, const std::string &);
+    void        setObjective(const SLRExpr<T> &, int goal = 0);
+    void        addConstr(const SLRConstrExpr<T> &, const std::string &);
     SLRVar<T>   addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name);
     void        optimize();
 

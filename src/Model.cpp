@@ -46,27 +46,21 @@ void SLRModel<T>::printExpression(const SLRConstrExpr<T> &constrExpr) const
     std::cout << std::endl << " - Constraint : " << constrExpr._constr << std::endl;
 }
 
-
-
-
-
-
 #ifdef GRB
 
+// set always env as true, which means env is empty
 template <typename T>
 SLRModel<T>::SLRModel() : _env(true)
 {
-    _env.set("LogFile", "mip1.log");
     _env.start();
     _model = std::make_shared<GRBModel>(_env);
-
 }
 
 template <typename T>
 GRBQuadExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
 {
     GRBQuadExpr finalExpr;
-    for (int i =  0; i < expr._vars.size(); i++)
+    for (int i = 0; i < expr._vars.size(); i++)
     {
         GRBQuadExpr  grbLinExpr;
         if (expr._vars[i].size() == 2)
@@ -85,27 +79,23 @@ GRBQuadExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
 }
 
 template <typename T>
-int     SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
+void     SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
-    printExpression(expr);
     GRBQuadExpr grbExpr = SLRExprToGRBLineExpr(expr);
     _model->setObjective(grbExpr, goal);
-    return (1);
-
 }
 
 template <typename T>
-int     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
+void     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
 {
     GRBQuadExpr grbExpr = SLRExprToGRBLineExpr(constrExpr._expr);
+
     if (constrExpr._sign == INF)
         _model->addConstr(grbExpr <= constrExpr._constr, name);
     if (constrExpr._sign == SUP)
         _model->addConstr(grbExpr >= constrExpr._constr, name);
     if (constrExpr._sign == EQUAL)
         _model->addConstr(grbExpr == constrExpr._constr, name);
-
-    return (1);
 }
 
 template <typename T>
@@ -128,8 +118,8 @@ SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const 
         _vars.push_back(_model->addVar(lowerBound, upperBound, solution, GRB_INTEGER, name));
     else if (std::is_same<T, float>::value || std::is_same<T, double>::value)
         _vars.push_back(_model->addVar(lowerBound, upperBound, solution, GRB_CONTINUOUS, name));
-//else
-    // send error
+    else
+        throw SLRException(1, "Model::addVar", "Unknown type");
 
     return (variable);
 }
@@ -180,7 +170,7 @@ void SLRModel<T>::updateVariableConstraints()
 }
 
 template <typename T>
-int SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
+void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
     double   fullMatrix[_nbVar][_nbVar];
 
