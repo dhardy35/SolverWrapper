@@ -2,8 +2,7 @@
 // Created by adrien_bedel on 09/09/19.
 //
 
-#include "/home/adrien/Downloads/gurobi811/linux64/include/gurobi_c++.h"
-#include "osqp.h"
+#include <vector>
 #include <iostream>
 #include "Expression.h"
 #include "ConstraintExpression.h"
@@ -16,18 +15,18 @@
 
 
 int main() {
-    GRBEnv env = GRBEnv();
-    OSQPWorkspace *work;
+    SLRModel<double> model;
 
-    SLRModel<float> model;
+    SLRVar<double> x = model.addVar(0.0, 1.7, 0.0, "x");
+    SLRVar<double> y = model.addVar(0.6, 0.7, 0.0, "y");
+    SLRVar<double> z = model.addVar(-1.0, -0.7, 0.0, "z");
 
-    SLRVar<float> x = model.addVar(0.0, 0.7, 0.0, "x");
-    SLRVar<float> y = model.addVar(0.0, 0.7, 0.0, "y");
-
-    model.setObjective(4 * x * x + 2 * x * y + 2 * y * y + x + y, SLR_MINIMIZE);
-    model.addConstr(x + y == 1, "c0");
+    model.setObjective(x + y + z + y * z + x * x + y * y + z * z, SLR_MINIMIZE);
+    //model.addConstr(x + -2 >= -2 + -1 * z + -2 * y, "c1");
+    model.addConstr(x + y + z == 1, "c0");
+    //model.addConstr(x + 2 * y + z + 1 == 10, "c1");
     model.optimize();
-
+    model.printResult();
     return 0;
 }
 

@@ -3,16 +3,11 @@
 //
 
 #include <ConstraintExpression.h>
+#include <Expression.h>
 #include "Model.h"
 
 
-template <typename T>
-SLRModel<T>::SLRModel() : _nbVar(0)
-{
-#ifdef OSQP
-    _quadricNb = 0;
-#endif
-}
+
 
 template <typename T>
 void SLRModel<T>::printExpression(const SLRExpr<T> &expr) const
@@ -51,6 +46,113 @@ void SLRModel<T>::printExpression(const SLRConstrExpr<T> &constrExpr) const
     std::cout << std::endl << " - Constraint : " << constrExpr._constr << std::endl;
 }
 
+
+
+
+
+
+#ifdef GRB
+
+template <typename T>
+SLRModel<T>::SLRModel() : _env(true)
+{
+    _env.set("LogFile", "mip1.log");
+    _env.start();
+    _model = std::make_shared<GRBModel>(_env);
+
+}
+
+template <typename T>
+GRBQuadExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
+{
+    GRBQuadExpr finalExpr;
+    for (int i =  0; i < expr._vars.size(); i++)
+    {
+        GRBQuadExpr  grbLinExpr;
+        if (expr._vars[i].size() == 2)
+        {
+            grbLinExpr = _vars[expr._vars[i][0][_varsVector]] * _vars[expr._vars[i][1][_varsVector]] * expr._coeffs[i];
+        }
+        else
+        {
+            grbLinExpr = _vars[expr._vars[i][0][_varsVector]] * expr._coeffs[i];
+
+        }
+            finalExpr += grbLinExpr;
+    }
+    finalExpr += expr._constant;
+    return (finalExpr);
+}
+
+template <typename T>
+int     SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
+{
+    printExpression(expr);
+    GRBQuadExpr grbExpr = SLRExprToGRBLineExpr(expr);
+    _model->setObjective(grbExpr, goal);
+    return (1);
+
+}
+
+template <typename T>
+int     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
+{
+    GRBQuadExpr grbExpr = SLRExprToGRBLineExpr(constrExpr._expr);
+    if (constrExpr._sign == INF)
+        _model->addConstr(grbExpr <= constrExpr._constr, name);
+    if (constrExpr._sign == SUP)
+        _model->addConstr(grbExpr >= constrExpr._constr, name);
+    if (constrExpr._sign == EQUAL)
+        _model->addConstr(grbExpr == constrExpr._constr, name);
+
+    return (1);
+}
+
+template <typename T>
+void    SLRModel<T>::optimize()
+{
+    _model->optimize();
+}
+
+template <typename T>
+SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name)
+{
+    SLRVar<T>   variable(lowerBound, upperBound, solution, name);
+
+    _varsVector.push_back(variable);
+    _nbVar++;
+
+    if (std::is_same<T, bool>::value)
+        _vars.push_back(_model->addVar(lowerBound, upperBound, solution, GRB_BINARY, name));
+    else if (std::is_same<T, int>::value)
+        _vars.push_back(_model->addVar(lowerBound, upperBound, solution, GRB_INTEGER, name));
+    else if (std::is_same<T, float>::value || std::is_same<T, double>::value)
+        _vars.push_back(_model->addVar(lowerBound, upperBound, solution, GRB_CONTINUOUS, name));
+//else
+    // send error
+
+    return (variable);
+}
+
+template <typename T>
+void    SLRModel<T>::printResult()
+{
+    for (auto const &var : _vars)
+    {
+        std::cout << var.get(GRB_StringAttr_VarName) << " "
+                  << var.get(GRB_DoubleAttr_X) << std::endl;
+    }
+}
+
+
+#elif OSQP
+
+template <typename T>
+SLRModel<T>::SLRModel() : _nbVar(0), _nbConstr(0)
+{
+    _quadricNb = 0;
+}
+
 template <typename T>
 SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name)
 {
@@ -73,24 +175,19 @@ void SLRModel<T>::updateVariableConstraints()
         _upperBound.push_back(var.getUpperBound());
         constrCoeff[var[_varsVector]] = 1;
         _constrCoeffs.push_back(constrCoeff);
+        _nbConstr++;
     }
 }
 
-
-#ifdef GRB
 template <typename T>
 int SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
-    std::cout << "GurobiSolver" << std::endl;
-}
-#elif OSQP
-template <typename T>
-int SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
-{
-    double   fullMatrix[_nbVar][_nbVar] = {0};
+    double   fullMatrix[_nbVar][_nbVar];
 
     updateVariableConstraints();
     _linearCoeffs = (c_float *)malloc(sizeof(c_float) * _nbVar);
+    memset(fullMatrix, 0, sizeof (double) * (_nbVar * _nbVar));
+    memset(_linearCoeffs, 0, sizeof (c_float) * (_nbVar));
     for (int i = 0; i < expr._vars.size(); i++)
     {
         if (expr._vars[i].size() == 2)
@@ -103,6 +200,7 @@ int SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
             _linearCoeffs[expr._vars[i][0][_varsVector]] = expr._coeffs[i];
         }
     }
+
     _quadricCoeffs = (c_float *)malloc(sizeof(c_float) * _quadricNb);
     _coeffsRaws = (c_int *)malloc(sizeof(c_int) * _quadricNb);
     _coeffsColumns = (c_int *)malloc(sizeof(c_int) * (_nbVar + 1));
@@ -125,11 +223,10 @@ int SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
         }
     }
     _coeffsColumns[0] = 0;
-    for (int i = 1; i < _quadricNb; i++)
+    for (int i = 1; i < _nbVar + 1; i++)
     {
         _coeffsColumns[i] += _coeffsColumns[i - 1];
     }
-
     printExpression(expr);
     return (1);
 }
@@ -161,11 +258,54 @@ int         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std
         _lowerBound.push_back(constrExpr._constr);
         _upperBound.push_back(std::numeric_limits<double>::max());
     }
+    _nbConstr++;
     return (1);
 }
 
 template <typename T>
-void    SLRModel<T>::optimize()
+void    SLRModel<T>::printOSQPVariables(OSQPData &data)
+{
+    std::cout << "Begin ----------" << std::endl;
+    std::cout << data.m << std::endl;
+    std::cout << data.n << std::endl;
+    std::cout <<  data.A->nzmax<< std::endl << "x = ";
+
+    for (int i = 0; i < data.A->nzmax; i++)
+        std::cout << data.A->x[i] << " ";
+    std::cout << std::endl << "i = ";
+    for (int i = 0; i < data.A->nzmax; i++)
+        std::cout << data.A->i[i]<< " ";
+    std::cout << std::endl << "p = ";
+    for (int i = 0; i < data.n + 1; i++)
+        std::cout << data.A->p[i] << " ";
+    std::cout << std::endl << "l = ";
+    for (int i = 0; i < data.m; i++)
+        std::cout << data.l[i] << " ";
+    std::cout << std::endl << "u = ";
+    for (int i = 0; i < data.m; i++)
+        std::cout << data.u[i] << " ";
+    std::cout << std::endl;
+
+    std::cout <<  data.P->nzmax<< std::endl << "x = ";
+
+    for (int i = 0; i < data.P->nzmax; i++)
+        std::cout << data.P->x[i] << " ";
+    std::cout << std::endl << "i = ";
+    for (int i = 0; i < data.P->nzmax; i++)
+        std::cout << data.P->i[i] << " ";
+    std::cout << std::endl << "p = ";
+    for (int i = 0; i < data.n + 1; i++)
+        std::cout << data.P->p[i] << " ";
+    std::cout << std::endl << "q = ";
+    for (int i = 0; i < data.n; i++)
+        std::cout << data.q[i] << " ";
+    std::cout << std::endl;
+    std::cout << "End ----------" << std::endl;
+
+}
+
+template <typename T>
+void    SLRModel<T>::fillData()
 {
     c_int nonZeroCoeffNb = 0;
     for (int i = 0; i < _constrCoeffs.size(); i++)
@@ -180,7 +320,7 @@ void    SLRModel<T>::optimize()
     c_int   *coeffsRaws = (c_int*)malloc(sizeof(c_int) * nonZeroCoeffNb);
     c_int   *coeffsColumns = (c_int*)malloc(sizeof(c_int) * (_nbVar + 1));
 
-    memset(coeffsColumns, 0, sizeof(c_int) * _nbVar);
+    memset(coeffsColumns, 0, sizeof(c_int) * (_nbVar + 1));
 
     nonZeroCoeffNb = 0;
     for (int i = 0; i < _constrCoeffs[0].size(); i++)
@@ -213,14 +353,29 @@ void    SLRModel<T>::optimize()
     _data.u = upperBound;
     _data.P = csc_matrix(_nbVar, _nbVar, _quadricNb, _quadricCoeffs, _coeffsRaws, _coeffsColumns);
     _data.q = _linearCoeffs;
+}
+
+template <typename T>
+void    SLRModel<T>::optimize()
+{
+
+    fillData();
+
+    printOSQPVariables(_data);
 
     c_int exitflag = 0;
     osqp_set_default_settings(&_settings);
     _settings.alpha = 1.0; // Change alpha parameter
     exitflag = osqp_setup(&_work, &_data, &_settings);
     osqp_solve(_work);
-    std::cout << _work->solution[0].x[0] << " " << _work->solution[0].x[1] << std::endl;
     //return exitlag;
 }
+
+template <typename T>
+void    SLRModel<T>::printResult()
+{
+    std::cout << _work->solution[0].x[0] << " " << _work->solution[0].x[1] << " " << _work->solution[0].x[2] << std::endl;
+}
+
 
 #endif

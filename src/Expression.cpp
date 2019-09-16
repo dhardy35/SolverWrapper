@@ -74,6 +74,14 @@ SLRExpr<T> operator+(const SLRVar<T> &x, const SLRVar<T> &y)
     return (expr);
 }
 
+template <typename T>
+SLRExpr<T> operator+(const SLRVar<T> &x, const double &v)
+{
+    SLRExpr<T> expr(x);
+    expr = expr + v;
+    return (expr);
+}
+
 
 template <typename T>
 SLRExpr<T> SLRExpr<T>::operator*(const double &coeff)
