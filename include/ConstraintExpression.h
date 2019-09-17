@@ -26,14 +26,14 @@ template <typename T>
 class SLRConstrExpr
 {
 private:
-    ConstrSign _sign;
-    SLRExpr<T>  _expr;
+    char         _sign;
+    SLRExpr<T>   _expr;
     double       _constr;
 
 public:
     SLRConstrExpr() = delete;
-    SLRConstrExpr(const SLRExpr<T> &, const SLRExpr<T> &, const ConstrSign &);
-    SLRConstrExpr(const SLRExpr<T> &, const double &, const ConstrSign &);
+    SLRConstrExpr(const SLRExpr<T> &, const SLRExpr<T> &, const char &);
+    SLRConstrExpr(const SLRExpr<T> &, const double &, const char &);
 
     friend class SLRModel<T>;
 

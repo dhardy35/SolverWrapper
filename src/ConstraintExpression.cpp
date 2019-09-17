@@ -5,7 +5,7 @@
 #include "ConstraintExpression.h"
 
 template <typename T>
-SLRConstrExpr<T>::SLRConstrExpr(const SLRExpr<T> &exprLeft, const SLRExpr<T> &exprRight, const ConstrSign &sign) : _sign(sign), _expr(exprLeft)
+SLRConstrExpr<T>::SLRConstrExpr(const SLRExpr<T> &exprLeft, const SLRExpr<T> &exprRight, const char &sign) : _sign(sign), _expr(exprLeft)
 {
     // get constraint from expression's constants
     _constr = exprRight._constant - exprLeft._constant;
@@ -44,7 +44,7 @@ SLRConstrExpr<T>::SLRConstrExpr(const SLRExpr<T> &exprLeft, const SLRExpr<T> &ex
 }
 
 template <typename T>
-SLRConstrExpr<T>::SLRConstrExpr(const SLRExpr<T> &exprLeft, const double &constr, const ConstrSign &sign) : _sign(sign), _expr(exprLeft)
+SLRConstrExpr<T>::SLRConstrExpr(const SLRExpr<T> &exprLeft, const double &constr, const char &sign) : _sign(sign), _expr(exprLeft)
 {
     // get constraint from expression's constants
     _constr = constr - exprLeft._constant;
@@ -54,47 +54,47 @@ SLRConstrExpr<T>::SLRConstrExpr(const SLRExpr<T> &exprLeft, const double &constr
 
 template <typename T>
 SLRConstrExpr<T> operator<=(const SLRExpr<T> &exprLeft, const SLRExpr<T> &exprRight)
-{ return (SLRConstrExpr<T>(exprLeft, exprRight, INF));}
+{ return (SLRConstrExpr<T>(exprLeft, exprRight, SLR_LESS_EQUAL));}
 
 template <typename T>
 SLRConstrExpr<T> operator>=(const SLRExpr<T> &exprLeft, const SLRExpr<T> &exprRight)
-{ return (SLRConstrExpr<T>(exprLeft, exprRight, SUP));}
+{ return (SLRConstrExpr<T>(exprLeft, exprRight, SLR_GREATER_EQUAL));}
 
 
 template <typename T>
 SLRConstrExpr<T> operator==(const SLRExpr<T> &exprLeft, const SLRExpr<T> &exprRight)
-{ return (SLRConstrExpr<T>(exprLeft, exprRight, EQUAL));}
+{ return (SLRConstrExpr<T>(exprLeft, exprRight, SLR_EQUAL));}
 
 
 
 
 template <typename T>
 SLRConstrExpr<T> operator<=(const double &constr, const SLRExpr<T> &exprRight)
-{ return (SLRConstrExpr<T>(exprRight, constr, SUP));}
+{ return (SLRConstrExpr<T>(exprRight, constr, SLR_GREATER_EQUAL));}
 
 
 template <typename T>
 SLRConstrExpr<T> operator>=(const double &constr, const SLRExpr<T> &exprRight)
-{ return (SLRConstrExpr<T>(exprRight, constr, INF));}
+{ return (SLRConstrExpr<T>(exprRight, constr, SLR_LESS_EQUAL));}
 
 
 template <typename T>
 SLRConstrExpr<T> operator==(const double &constr, const SLRExpr<T> &exprRight)
-{ return (SLRConstrExpr<T>(exprRight, constr, EQUAL));}
+{ return (SLRConstrExpr<T>(exprRight, constr, SLR_EQUAL));}
 
 
 
 
 template <typename T>
 SLRConstrExpr<T> operator<=(const SLRExpr<T> &exprLeft, const double &constr)
-{ return (SLRConstrExpr<T>(exprLeft, constr, INF));}
+{ return (SLRConstrExpr<T>(exprLeft, constr, SLR_LESS_EQUAL));}
 
 
 template <typename T>
 SLRConstrExpr<T> operator>=(const SLRExpr<T> &exprLeft, const double &constr)
-{ return (SLRConstrExpr<T>(exprLeft, constr, SUP));}
+{ return (SLRConstrExpr<T>(exprLeft, constr, SLR_GREATER_EQUAL));}
 
 
 template <typename T>
 SLRConstrExpr<T> operator==(const SLRExpr<T> &exprLeft, const double &constr)
-{ return (SLRConstrExpr<T>(exprLeft, constr, EQUAL));}
+{ return (SLRConstrExpr<T>(exprLeft, constr, SLR_EQUAL));}

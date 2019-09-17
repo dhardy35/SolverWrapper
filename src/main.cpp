@@ -26,7 +26,7 @@ int main()
 
         model.setObjective(x + y + z + y * z + x * x + y * y + z * z, SLR_MINIMIZE);
         //model.addConstr(x + -2 >= -2 + -1 * z + -2 * y, "c1");
-        model.addConstr(x + y + z == 1, "c0");
+        model.addConstr(x + y + z >= 1, "c0");
         //model.addConstr(x + 2 * y + z + 1 == 10, "c1");
         model.optimize();
         model.printResult();

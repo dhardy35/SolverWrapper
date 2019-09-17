@@ -33,13 +33,7 @@ void SLRModel<T>::printExpression(const SLRConstrExpr<T> &constrExpr) const
 {
     std::cout << "Constraint : " << std::endl << " - ";
     printExpression(constrExpr._expr);
-    std::cout << " - Sign       : ";
-    if (constrExpr._sign == INF)
-        std::cout << "<=";
-    else if (constrExpr._sign == SUP)
-        std::cout << ">=";
-    else if (constrExpr._sign == EQUAL)
-        std::cout << "==";
+    std::cout << " - Sign       : " << constrExpr._sign << "=";
     std::cout << std::endl << " - Constraint : " << constrExpr._constr << std::endl;
 }
 
@@ -54,7 +48,7 @@ SLRModel<T>::SLRModel() : _env(true)
 }
 
 template <typename T>
-GRBQuadExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
+GRBQuadExpr      SLRModel<T>::SLRExprToGRBQuadExpr(const SLRExpr<T> &expr)
 {
     GRBQuadExpr finalExpr;
     for (int i = 0; i < expr._vars.size(); i++)
@@ -69,7 +63,29 @@ GRBQuadExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
             grbLinExpr = _vars[expr._vars[i][0][_varsVector]] * expr._coeffs[i];
 
         }
-            finalExpr += grbLinExpr;
+        finalExpr += grbLinExpr;
+    }
+    finalExpr += expr._constant;
+    return (finalExpr);
+}
+
+template <typename T>
+GRBLinExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
+{
+    GRBLinExpr finalExpr;
+    for (int i = 0; i < expr._vars.size(); i++)
+    {
+        GRBLinExpr  grbLinExpr;
+        if (expr._vars[i].size() == 2)
+        {
+            throw SLRException(030502, "SLRModel::SLRExprToGRBLineExpr", "only linear constraints are allowed");
+        }
+        else
+        {
+            grbLinExpr = _vars[expr._vars[i][0][_varsVector]] * expr._coeffs[i];
+
+        }
+        finalExpr += grbLinExpr;
     }
     finalExpr += expr._constant;
     return (finalExpr);
@@ -78,21 +94,16 @@ GRBQuadExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
 template <typename T>
 void     SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
-    GRBQuadExpr grbExpr = SLRExprToGRBLineExpr(expr);
+    GRBQuadExpr grbExpr = SLRExprToGRBQuadExpr(expr);
     _model->setObjective(grbExpr, goal);
 }
 
 template <typename T>
 void     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
 {
-    GRBQuadExpr grbExpr = SLRExprToGRBLineExpr(constrExpr._expr);
-
-    if (constrExpr._sign == INF)
-        _model->addConstr(grbExpr <= constrExpr._constr, name);
-    if (constrExpr._sign == SUP)
-        _model->addConstr(grbExpr >= constrExpr._constr, name);
-    if (constrExpr._sign == EQUAL)
-        _model->addConstr(grbExpr == constrExpr._constr, name);
+    GRBLinExpr grbExpr = SLRExprToGRBLineExpr(constrExpr._expr);
+    printExpression(constrExpr);
+    _model->addConstr(grbExpr, GRB_EQUAL, constrExpr._constr, name);
 }
 
 template <typename T>
@@ -237,17 +248,17 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
         constrCoeff[constrExpr._expr._vars[i][0][_varsVector]] = constrExpr._expr._coeffs[i];
     }
     _constrCoeffs.push_back(constrCoeff);
-    if (constrExpr._sign == EQUAL)
+    if (constrExpr._sign == SLR_EQUAL)
     {
         _lowerBound.push_back(constrExpr._constr);
         _upperBound.push_back(constrExpr._constr);
     }
-    else if (constrExpr._sign == INF)
+    else if (constrExpr._sign == SLR_LESS_EQUAL)
     {
         _lowerBound.push_back(std::numeric_limits<double>::min());
         _upperBound.push_back(constrExpr._constr);
     }
-    else if (constrExpr._sign == SUP)
+    else if (constrExpr._sign == SLR_GREATER_EQUAL)
     {
         _lowerBound.push_back(constrExpr._constr);
         _upperBound.push_back(std::numeric_limits<double>::max());

@@ -20,11 +20,17 @@
 #include "Variable.h"
 #include "SLRException.h"
 
+/* Constraint senses */
+
+#define SLR_LESS_EQUAL    '<'
+#define SLR_GREATER_EQUAL '>'
+#define SLR_EQUAL         '='
+
+/* Objective sense */
 
 #define SLR_MINIMIZE 1
 #define SLR_MAXIMIZE -1
 
-enum ConstrSign {INF, SUP, EQUAL};
 
 template <class T> class SLRExpr;
 template <typename T> class SLRConstrExpr;
@@ -42,7 +48,8 @@ private:
     GRBEnv                      _env;
     std::vector<GRBVar>         _vars;
 
-    GRBQuadExpr                  SLRExprToGRBLineExpr(const SLRExpr<T> &expr);
+    GRBLinExpr                  SLRExprToGRBLineExpr(const SLRExpr<T> &expr);
+    GRBQuadExpr                 SLRExprToGRBQuadExpr(const SLRExpr<T> &expr);
 
 #elif OSQP
     int                                 _nbConstr;
