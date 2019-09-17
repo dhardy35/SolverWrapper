@@ -6,9 +6,6 @@
 #include <Expression.h>
 #include "Model.h"
 
-
-
-
 template <typename T>
 void SLRModel<T>::printExpression(const SLRExpr<T> &expr) const
 {
@@ -178,7 +175,7 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
     _linearCoeffs = (c_float *)malloc(sizeof(c_float) * _nbVar);
 
     if (fullMatrix == NULL || _linearCoeffs == NULL)
-        throw SLRException(31, "SLRModel::setObjective", "memory alloc failed");
+        throw SLRException(031301, "SLRModel::setObjective", "memory alloc failed");
 
     memset(fullMatrix, 0, sizeof (double) * (_nbVar * _nbVar));
     memset(_linearCoeffs, 0, sizeof (c_float) * (_nbVar));
@@ -200,7 +197,7 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
     _coeffsColumns = (c_int *)malloc(sizeof(c_int) * (_nbVar + 1));
 
     if (_quadricCoeffs == NULL || _coeffsRaws == NULL || _coeffsColumns == NULL)
-        throw SLRException(32, "SLRModel::setObjective", "memory alloc failed");
+        throw SLRException(031301, "SLRModel::setObjective", "memory alloc failed");
 
     memset(_coeffsColumns, 0, sizeof (c_int) * _quadricNb);
     _quadricNb = 0;
@@ -236,7 +233,7 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
     for (int i = 0; i < constrExpr._expr._vars.size(); i++)
     {
         if (constrExpr._expr._vars[i].size() > 1)
-            throw SLRException(40, "SLRModel::addConstr", "only linear constraints are allowed");
+            throw SLRException(031402, "SLRModel::addConstr", "only linear constraints are allowed");
         constrCoeff[constrExpr._expr._vars[i][0][_varsVector]] = constrExpr._expr._coeffs[i];
     }
     _constrCoeffs.push_back(constrCoeff);
@@ -317,7 +314,7 @@ void    SLRModel<T>::fillData()
     c_int   *coeffsColumns = (c_int*)malloc(sizeof(c_int) * (_nbVar + 1));
 
     if (nonZeroCoeffs == NULL || coeffsRaws == NULL || coeffsColumns == NULL)
-        throw SLRException(32, "SLRModel::fillData", "memory alloc failed");
+        throw SLRException(031601, "SLRModel::fillData", "memory alloc failed");
 
     memset(coeffsColumns, 0, sizeof(c_int) * (_nbVar + 1));
 
@@ -344,7 +341,7 @@ void    SLRModel<T>::fillData()
     c_float *upperBound = (c_float *)malloc(sizeof(c_float) * _upperBound.size());
 
     if (lowerBound == NULL || upperBound == NULL)
-        throw SLRException(32, "SLRModel::fillData", "memory alloc failed");
+        throw SLRException(031601, "SLRModel::fillData", "memory alloc failed");
 
     std::copy(_lowerBound.begin(), _lowerBound.end(), lowerBound);
     std::copy(_upperBound.begin(), _upperBound.end(), upperBound);
@@ -365,9 +362,9 @@ void    SLRModel<T>::optimize()
     fillData();
 
     osqp_set_default_settings(&_settings);
-    
+
     if (osqp_setup(&_work, &_data, &_settings) != 0)
-        throw SLRException(32, "SLRModel::optimize", "osqp_setup failed");
+        throw SLRException(031704, "SLRModel::optimize", "osqp_setup failed");
 
     osqp_solve(_work);
 }
@@ -375,8 +372,9 @@ void    SLRModel<T>::optimize()
 template <typename T>
 void    SLRModel<T>::printResult()
 {
-    std::cout << _work->solution[0].x[0] << " " << _work->solution[0].x[1] << " " << _work->solution[0].x[2] << std::endl;
+    for (int i = 0; i < _data.n; i++)
+        std::cout << _work->solution[0].x[i] << " ";
+    std::cout << std::endl;
 }
-
 
 #endif

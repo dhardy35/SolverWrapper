@@ -1,5 +1,6 @@
 //
 // Created by adrien_bedel on 16/09/19.
+// class 04
 //
 
 #ifndef SOLVEUR_SLREXCEPTION_H

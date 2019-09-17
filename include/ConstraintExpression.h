@@ -1,5 +1,6 @@
 //
 // Created by adrien_bedel on 10/09/19.
+// class 01
 //
 
 #ifndef SOLVEUR_CONSTRAINTEXPRESSION_H

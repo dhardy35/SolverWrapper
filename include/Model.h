@@ -1,5 +1,6 @@
 //
 // Created by adrien_bedel on 09/09/19.
+// class 03
 //
 
 #ifndef SOLVEUR_MODEL_H
@@ -10,7 +11,7 @@
 #include <string>
 
 #ifdef GRB
-#include "/home/adrien/Downloads/gurobi811/linux64/include/gurobi_c++.h"
+#include "gurobi_c++.h"
 #include <memory>
 #elif OSQP
 #include "osqp.h"
@@ -68,7 +69,7 @@ public:
     void        printExpression(const SLRConstrExpr<T> &) const;
     void        setObjective(const SLRExpr<T> &, int goal = 0);
     void        addConstr(const SLRConstrExpr<T> &, const std::string &);
-    SLRVar<T>   addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name);
+    SLRVar<T>   addVar(const T &, const T &, const T &, const std::string &);
     void        optimize();
 
 #ifdef GRB

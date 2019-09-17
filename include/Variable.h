@@ -1,5 +1,6 @@
 //
 // Created by adrien_bedel on 09/09/19.
+// class 05
 //
 
 #ifndef SOLVEUR_VARIABLE_H
@@ -19,7 +20,7 @@ private:
 
 public:
     SLRVar() = delete;
-    SLRVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name);
+    SLRVar(const T &, const T &, const T &, const std::string &);
 
     std::string getName() const;
     T getLowerBound() const;

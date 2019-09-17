@@ -1,5 +1,6 @@
 //
 // Created by adrien_bedel on 09/09/19.
+// class 02
 //
 
 #ifndef SOLVEUR_EXPRESSION_H
