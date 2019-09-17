@@ -44,7 +44,7 @@ private:
     GRBQuadExpr                  SLRExprToGRBLineExpr(const SLRExpr<T> &expr);
 
 #elif OSQP
-    int                     _nbConstr;
+    int                                 _nbConstr;
     std::vector<double>                 _lowerBound;
     std::vector<double>                 _upperBound;
     std::vector<std::vector<double>>    _constrCoeffs;
