@@ -6,6 +6,12 @@
 
 
 template <class T>
+SLRExpr<T>::SLRExpr() : _varIndex(-1), _constant(0)
+{
+
+}
+
+template <class T>
 SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0), _constant(0)
 {
     _coeffs.push_back(1);

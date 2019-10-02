@@ -36,7 +36,7 @@ private:
     double                              _constant;
     std::vector<double>                 _coeffs;
     std::vector<std::vector<SLRVar<T>>> _vars;
-    unsigned int                        _varIndex;
+    int                                 _varIndex;
 
     SLRExpr(const SLRVar<T> &);
     SLRExpr(const SLRVar<T> &, const double &);
@@ -48,7 +48,7 @@ public:
     friend class SLRModel<T>;
     friend class SLRConstrExpr<T>;
 
-    SLRExpr() = delete;
+    SLRExpr();
 
     friend SLRExpr<T> operator*<>(const SLRVar<T> &, const SLRVar<T> &);
     friend SLRExpr<T> operator*<>(const double &, const SLRVar<T> &);

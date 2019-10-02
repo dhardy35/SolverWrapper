@@ -26,6 +26,7 @@ public:
     T getLowerBound() const;
     T getUpperBound() const;
     T getSolution() const;
+    T get() const;
 
     bool operator==(const SLRVar<T> &) const;
     bool operator<(const SLRVar<T> &) const;

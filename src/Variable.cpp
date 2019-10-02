@@ -28,6 +28,13 @@ T SLRVar<T>::getUpperBound() const
 }
 
 template <typename T>
+T SLRVar<T>::get() const
+{
+    return (_solution);
+}
+
+
+template <typename T>
 T SLRVar<T>::getSolution() const
 {
     return (_solution);
