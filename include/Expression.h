@@ -16,6 +16,8 @@ template <typename T> SLRExpr<T> operator+(const double &, SLRExpr<T> );
 template <typename T> SLRExpr<T> operator+(const SLRVar<T> &, SLRExpr<T> );
 template <typename T> SLRExpr<T> operator+(const SLRVar<T> &, const SLRVar<T> &);
 template <typename T> SLRExpr<T> operator+(const SLRVar<T> &, const double &);
+template <typename T> SLRExpr<T> operator*(const SLRExpr<T> &, const double &);
+template <typename T> SLRExpr<T> operator*(const double &, const SLRExpr<T> &);
 
 
 //  _vars store the variables like it is in the equation
@@ -53,6 +55,9 @@ public:
     friend SLRExpr<T> operator*<>(const SLRVar<T> &, const SLRVar<T> &);
     friend SLRExpr<T> operator*<>(const double &, const SLRVar<T> &);
     friend SLRExpr<T> operator*<>(const SLRVar<T> &, const double &);
+    friend SLRExpr<T> operator*<>(const SLRExpr<T> &, const double &);
+    friend SLRExpr<T> operator*<>(const double &, const SLRExpr<T> &);
+
     friend SLRExpr<T> operator+<>(const double &, SLRExpr<T> );
     friend SLRExpr<T> operator+<>(const SLRVar<T> &, SLRExpr<T> );
     friend SLRExpr<T> operator+<>(const SLRVar<T> &, const SLRVar<T> &);
@@ -62,6 +67,8 @@ public:
     SLRExpr<T> operator+(const double &);
     SLRExpr<T> operator+(const SLRVar<T> &);
     SLRExpr<T> operator+(const SLRExpr<T> &);
+    SLRExpr<T> operator+=(const SLRExpr<T> &);
+    SLRExpr<T> operator/=(const double &);
 
 };
 

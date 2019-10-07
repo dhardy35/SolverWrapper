@@ -31,11 +31,6 @@
 #define SLR_MINIMIZE 1
 #define SLR_MAXIMIZE -1
 
-/* # of solutions found */
-
-#define SLR_ATTR_SOLCOUNT "SolCount"
-
-
 template <class T> class SLRExpr;
 template <typename T> class SLRConstrExpr;
 
@@ -82,7 +77,7 @@ public:
     void        setObjective(const SLRExpr<T> &, int goal = 0);
     void        addConstr(const SLRConstrExpr<T> &, const std::string &name = "");
     SLRVar<T>   addVar(const T &, const T &, const T &, const std::string &name = "");
-    SLRVar<T>   getVarByName(const std::string &name);
+    SLRVar<T>   *getVarByName(const std::string &name);
     void        optimize();
     bool        hasSolution() const;
 

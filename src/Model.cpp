@@ -38,11 +38,11 @@ void SLRModel<T>::printExpression(const SLRConstrExpr<T> &constrExpr) const
 }
 
 template <typename T>
-SLRVar<T>    SLRModel<T>::getVarByName(const std::string &name)
+SLRVar<T>    *SLRModel<T>::getVarByName(const std::string &name)
 {
     auto idx = std::find(_varsVector.begin(), _varsVector.end(), name);
     if (idx != _varsVector.end())
-        return (_varsVector.at(idx));
+        return (&*idx);
     throw SLRException(030306, "SLRModel::getVarByName", "Variable name not known");
 }
 
@@ -125,8 +125,13 @@ void     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::s
 template <typename T>
 void    SLRModel<T>::optimize()
 {
+    for (int i = 0; i < _varsVector.size(); i++)
+    {
+        _vars[i].set(GRB_DoubleAttr_Start, _varsVector[i].getSolution());
+    }
+
     _model->optimize();
-    _solutionState = model->get(SLR_IntAttr_SolCount);
+    _solutionState = _model->get(GRB_IntAttr_SolCount);
 }
 
 template <typename T>
@@ -394,7 +399,7 @@ void    SLRModel<T>::optimize()
     osqp_set_default_settings(&_settings);
 
     if (osqp_setup(&_work, &_data, &_settings) != 0)
-        throw SLRException(031804, "SLRModel::optimize", "osqp_setup failed");
+        throw SLRException(31804, "SLRModel::optimize", "osqp_setup failed");
 
     osqp_solve(_work);
 

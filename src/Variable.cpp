@@ -41,9 +41,22 @@ T SLRVar<T>::getSolution() const
 }
 
 template <typename T>
+void SLRVar<T>::set(const T &solution)
+{
+    _solution = solution;
+}
+
+
+template <typename T>
 bool SLRVar<T>::operator==(const SLRVar<T> &var) const
 {
     return (_name == var.getName());
+}
+
+template <typename T>
+bool SLRVar<T>::operator==(const std::string &name) const
+{
+    return (_name == name);
 }
 
 template <typename T>

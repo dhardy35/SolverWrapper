@@ -28,7 +28,9 @@ public:
     T getSolution() const;
     T get() const;
 
+    void set(const T &);
     bool operator==(const SLRVar<T> &) const;
+    bool operator==(const std::string &) const;
     bool operator<(const SLRVar<T> &) const;
     int operator[](const std::vector<SLRVar<T>> &) const;
 
