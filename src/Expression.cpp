@@ -138,18 +138,41 @@ SLRExpr<T> operator*(const double &k, const SLRExpr<T> &expr)
     return (ex);
 }
 
+template <typename T>
+SLRExpr<T> operator/(const SLRExpr<T> &expr, const double &k)
+{
+    SLRExpr<T> ex = expr;
+    for (auto &coeff : ex._coeffs)
+    {
+        coeff /= k;
+    }
+    return (ex);
+}
+
+template <typename T>
+SLRExpr<T> operator/(const double &k, const SLRExpr<T> &expr)
+{
+    SLRExpr<T> ex = expr;
+    for (auto &coeff : ex._coeffs)
+        coeff /= k;
+    return (ex);
+}
+
 
 
 template <typename T>
 SLRExpr<T> SLRExpr<T>::operator*(const double &k)
 {
-    if (_varIndex > 0)
-    {
-        for (auto &coeff : _coeffs)
-            coeff *= k;
-    }
-    else
-    _coeffs.at(_varIndex) *= k;
+    for (auto &coeff : _coeffs)
+        coeff *= k;
+    return *this;
+}
+
+template <typename T>
+SLRExpr<T> SLRExpr<T>::operator/(const double &k)
+{
+    for (auto &coeff : _coeffs)
+        coeff /= k;
     return *this;
 }
 
@@ -159,7 +182,7 @@ SLRExpr<T> SLRExpr<T>::operator*(const SLRVar<T> &x)
     int i;
     // add variable in the right alphabetical place
     for (i = 0; i < _vars.at(_varIndex).size()
-    && _vars.at(_varIndex)[i] < x; i++) {};
+                && _vars.at(_varIndex)[i] < x; i++) {};
     _vars.at(_varIndex).insert(_vars.at(_varIndex).begin() + i, x);
     if (_vars.at(_varIndex).size() > 2)
         throw SLRException(021203, "SLRExpr::operator*(SLRvar)", "three dimensional is not allowed");
@@ -270,7 +293,7 @@ void    SLRExpr<T>::simplify()
         {
             int tmp = 0;
             for (int j = 0; j < _vars[i].size() &&
-            _vars[i][j] == _vars[_varIndex][j]; j++, tmp++);
+                            _vars[i][j] == _vars[_varIndex][j]; j++, tmp++);
             if (tmp == _vars[i].size())
             {
                 _vars.erase(_vars.begin() + _varIndex);

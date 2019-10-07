@@ -12,8 +12,11 @@
 template <typename T> SLRExpr<T> operator*(const SLRVar<T> &x, const SLRVar<T> &y);
 template <typename T> SLRExpr<T> operator*(const double &, const SLRVar<T> &);
 template <typename T> SLRExpr<T> operator*(const SLRVar<T> &, const double &);
+
 template <typename T> SLRExpr<T> operator*(const SLRExpr<T> &, const double &);
 template <typename T> SLRExpr<T> operator*(const double &, const SLRExpr<T> &);
+template <typename T> SLRExpr<T> operator/(const SLRExpr<T> &, const double &);
+template <typename T> SLRExpr<T> operator/(const double &, const SLRExpr<T> &);
 
 template <typename T> SLRExpr<T> operator+(const double &, SLRExpr<T> );
 template <typename T> SLRExpr<T> operator+(const SLRVar<T> &, SLRExpr<T> );
@@ -63,8 +66,11 @@ public:
     friend SLRExpr<T> operator*<>(const SLRVar<T> &, const SLRVar<T> &);
     friend SLRExpr<T> operator*<>(const double &, const SLRVar<T> &);
     friend SLRExpr<T> operator*<>(const SLRVar<T> &, const double &);
+
     friend SLRExpr<T> operator*<>(const SLRExpr<T> &, const double &);
     friend SLRExpr<T> operator*<>(const double &, const SLRExpr<T> &);
+    friend SLRExpr<T> operator/<>(const SLRExpr<T> &, const double &);
+    friend SLRExpr<T> operator/<>(const double &, const SLRExpr<T> &);
 
     friend SLRExpr<T> operator+<>(const double &, SLRExpr<T> );
     friend SLRExpr<T> operator+<>(const SLRVar<T> &, SLRExpr<T> );
@@ -77,6 +83,7 @@ public:
     friend SLRExpr<T> operator-<>(const SLRVar<T> &, const double &);
 
     SLRExpr<T> operator*(const double &);
+    SLRExpr<T> operator/(const double &);
     SLRExpr<T> operator*(const SLRVar<T> &);
 
     SLRExpr<T> operator+(const double &);
