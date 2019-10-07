@@ -89,6 +89,36 @@ SLRExpr<T> operator+(const SLRVar<T> &x, const double &v)
 }
 
 template <typename T>
+SLRExpr<T> operator-(const double &constant, SLRExpr<T> expr)
+{
+    expr = expr - constant;
+    return expr;
+}
+
+template <typename T>
+SLRExpr<T> operator-(const SLRVar<T> &var, SLRExpr<T> expr)
+{
+    expr = expr - var;
+    return (expr);
+}
+
+template <typename T>
+SLRExpr<T> operator-(const SLRVar<T> &x, const SLRVar<T> &y)
+{
+    SLRExpr<T> expr(x);
+    expr = expr - y;
+    return (expr);
+}
+
+template <typename T>
+SLRExpr<T> operator-(const SLRVar<T> &x, const double &v)
+{
+    SLRExpr<T> expr(x);
+    expr = expr - v;
+    return (expr);
+}
+
+template <typename T>
 SLRExpr<T> operator*(const SLRExpr<T> &expr, const double &k)
 {
     SLRExpr<T> ex = expr;
@@ -174,12 +204,60 @@ SLRExpr<T> SLRExpr<T>::operator+=(const SLRExpr<T> &expr)
 }
 
 template <typename T>
+SLRExpr<T> SLRExpr<T>::operator*=(const double &k)
+{
+    for (auto &coeff : _coeffs)
+        coeff *= k;
+    return *this;
+}
+
+template <typename T>
+SLRExpr<T> SLRExpr<T>::operator-(const double &constant)
+{
+    _constant = -constant;
+    return *this;
+}
+
+template <typename T>
+SLRExpr<T> SLRExpr<T>::operator-(const SLRVar<T> &x)
+{
+    _varIndex++;
+    _coeffs.push_back(-1);
+    _vars.push_back(std::vector<SLRVar<T>>());
+    _vars.at(_varIndex).push_back(x);
+    simplify();
+    return *this;
+}
+
+// fuse two expressions
+template <typename T>
+SLRExpr<T> SLRExpr<T>::operator-(const SLRExpr<T> &expr)
+{
+    SLRExpr<T> exprTmp = expr;
+    exprTmp = exprTmp * -1;
+    _varIndex += exprTmp._varIndex + 1;
+    _coeffs.insert(_coeffs.end(), exprTmp._coeffs.begin(), exprTmp._coeffs.end());
+    _vars.insert(_vars.end(), exprTmp._vars.begin(), exprTmp._vars.end());
+    simplify();
+    return *this;
+}
+
+template <typename T>
+SLRExpr<T> SLRExpr<T>::operator-=(const SLRExpr<T> &expr)
+{
+    *this = *this - expr;
+    return *this;
+}
+
+template <typename T>
 SLRExpr<T> SLRExpr<T>::operator/=(const double &k)
 {
     for (auto &coeff : _coeffs)
         coeff /= k;
     return *this;
 }
+
+
 
 // simplify expression
 // ex : 2x + 2x will be 4x

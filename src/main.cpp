@@ -25,10 +25,10 @@ int main()
         SLRVar<double> z = model.addVar(-1.0, -0.7, 0.0, "z");
         SLRExpr<double> le;
         SLRExpr<double> l;
-        le = 2 * x * 2 * x + 3 * 3 * x * y;
+        le = 2 * x * 2 * x - 3 * 3 * x * y;
         le /= 2.f;
         l = z * z * 2 * 2;
-        le += l;
+        le -= l;
         model.setObjective(le, SLR_MINIMIZE);
         //model.addConstr(x + -2 >= -2 + -1 * z + -2 * y, "c1");
         model.addConstr(x + y + z >= 1, "c0");
