@@ -38,11 +38,11 @@ void SLRModel<T>::printExpression(const SLRConstrExpr<T> &constrExpr) const
 }
 
 template <typename T>
-SLRVar<T>    *SLRModel<T>::getVarByName(const std::string &name)
+SLRVar<T>    SLRModel<T>::getVarByName(const std::string &name)
 {
     auto idx = std::find(_varsVector.begin(), _varsVector.end(), name);
     if (idx != _varsVector.end())
-        return (&*idx);
+        return (*idx);
     throw SLRException(030306, "SLRModel::getVarByName", "Variable name not known");
 }
 
@@ -125,10 +125,12 @@ void     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::s
 template <typename T>
 void    SLRModel<T>::optimize()
 {
+    // temporary not doing anything
+    /*
     for (int i = 0; i < _varsVector.size(); i++)
     {
         _vars[i].set(GRB_DoubleAttr_Start, _varsVector[i].getSolution());
-    }
+    }*/
 
     _model->optimize();
     _solutionState = _model->get(GRB_IntAttr_SolCount);
