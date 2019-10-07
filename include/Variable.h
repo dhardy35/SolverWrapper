@@ -19,7 +19,7 @@ private:
     std::string     _name;
 
 public:
-    SLRVar() = delete;
+    SLRVar() = default;
     SLRVar(const T &, const T &, const T &, const std::string &);
 
     std::string getName() const;
