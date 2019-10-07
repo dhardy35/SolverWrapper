@@ -82,6 +82,7 @@ public:
     friend SLRExpr<T> operator-<>(const SLRVar<T> &, const SLRVar<T> &);
     friend SLRExpr<T> operator-<>(const SLRVar<T> &, const double &);
 
+    SLRExpr<T> operator*(const SLRExpr<T> &);
     SLRExpr<T> operator*(const double &);
     SLRExpr<T> operator/(const double &);
     SLRExpr<T> operator*(const SLRVar<T> &);

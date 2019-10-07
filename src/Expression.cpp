@@ -159,6 +159,23 @@ SLRExpr<T> operator/(const double &k, const SLRExpr<T> &expr)
 }
 
 
+template <typename T>
+SLRExpr<T> SLRExpr<T>::operator*(const SLRExpr<T> &expr)
+{
+    for (int i = 0; i < _vars.size(); i++)
+    {
+        for (int j = 0; j < expr._vars.size(); j++)
+        {
+            _coeffs[i] *= expr._coeffs[j];
+            _vars[i].push_back(expr._vars[j][0]);
+            if (expr._vars[j].size() == 2)
+                _vars[i].push_back(expr._vars[j][1]);
+            simplify();
+        }
+    }
+    return *this;
+}
+
 
 template <typename T>
 SLRExpr<T> SLRExpr<T>::operator*(const double &k)
@@ -289,6 +306,8 @@ void    SLRExpr<T>::simplify()
 {
     for (int i = 0; i < _varIndex; i++)
     {
+        if (_vars[i].size() > 2)
+            throw SLRException(021203, "SLRExpr::operator*(SLRvar)", "three dimensional is not allowed");
         if (_vars[_varIndex].size() == _vars[i].size())
         {
             int tmp = 0;
