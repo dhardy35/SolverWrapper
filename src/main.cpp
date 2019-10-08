@@ -20,20 +20,13 @@ int main()
     {
         SLRModel<double> model;
 
-        SLRVar<double> x = model.addVar(0.0, 1.7, 0.0, "x");
-        SLRVar<double> y = model.addVar(0.6, 0.7, 0.0, "y");
-        SLRVar<double> z = model.addVar(-1.0, -0.7, 0.0, "z");
-        SLRExpr<double> le;
-        SLRExpr<double> l;
-        le = 2 * 2 * x - 3 * y * y;
-        l = z * 2 * 2;
-        le -= l;
-        SLRExpr<double> lend = 3 * x;
-        le = le * lend;
-        model.setObjective(le, SLR_MINIMIZE);
-        //model.addConstr(x + -2 >= -2 + -1 * z + -2 * y, "c1");
-        model.addConstr(x + y + z >= 1, "c0");
-        //model.addConstr(x + 2 * y + z + 1 == 10, "c1");
+        SLRVar<double> x = model.addVar(0.0, 1.0, 0.0, "x");
+        SLRVar<double> y = model.addVar(0.0, 1.0, 0.0, "y");
+        SLRVar<double> z = model.addVar(0.0, 1.0, 0.0, "z");
+
+        model.setObjective(((x * x - z * y * 2 * 3 - y - 2 * z * z * -1) * 1), SLR_MAXIMIZE);
+        model.addConstr(x + 2 * y + 3 * z <= 4, "c0");
+        model.addConstr(x + y >= 1, "c1");
         model.optimize();
         model.printResult();
     }

@@ -118,7 +118,6 @@ template <typename T>
 void     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
 {
     GRBLinExpr grbExpr = SLRExprToGRBLineExpr(constrExpr._expr);
-    printExpression(constrExpr);
     _model->addConstr(grbExpr, GRB_EQUAL, constrExpr._constr, name);
 }
 
@@ -156,6 +155,11 @@ SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const 
     return (variable);
 }
 
+template <typename T>
+void        SLRModel<T>::printDebug(const bool &state)
+{
+    _model->set(GRB_IntParam_OutputFlag, state);
+}
 
 
 template <typename T>

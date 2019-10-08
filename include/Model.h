@@ -80,6 +80,7 @@ public:
     SLRVar<T>   getVarByName(const std::string &name);
     void        optimize();
     bool        hasSolution() const;
+    void        printDebug(const bool &);
 
 #ifdef GRB
     SLRModel();
