@@ -110,6 +110,7 @@ GRBLinExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
 template <typename T>
 void     SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
+    printExpression(expr);
     GRBQuadExpr grbExpr = SLRExprToGRBQuadExpr(expr);
     _model->setObjective(grbExpr, goal);
 }
@@ -118,7 +119,7 @@ template <typename T>
 void     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
 {
     GRBLinExpr grbExpr = SLRExprToGRBLineExpr(constrExpr._expr);
-    _model->addConstr(grbExpr, GRB_EQUAL, constrExpr._constr, name);
+    _model->addConstr(grbExpr, constrExpr._sign, constrExpr._constr, name);
 }
 
 template <typename T>
@@ -153,6 +154,28 @@ SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const 
         throw SLRException(031005, "Model::addVar", "Unknown type");
 
     return (variable);
+}
+
+template <typename T>
+void        SLRModel<T>::update()
+{
+    _model->update();
+}
+
+template <typename T>
+void        SLRModel<T>::set(GRB_IntParam flag, int todo)
+{
+    if (flag == GRB_IntParam_Threads)
+        _model->set(GRB_IntParam_Threads, todo);
+    else if (flag == GRB_IntParam_Presolve)
+        _model->set(GRB_IntParam_Presolve, todo);
+}
+
+template <typename T>
+void        SLRModel<T>::set(GRB_DoubleParam flag, float todo)
+{
+    if (flag == GRB_DoubleParam_TimeLimit)
+        _model->set(GRB_DoubleParam_TimeLimit, todo);
 }
 
 template <typename T>

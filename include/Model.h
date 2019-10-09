@@ -81,10 +81,14 @@ public:
     void        optimize();
     bool        hasSolution() const;
     void        printDebug(const bool &);
+    void        update();
+
 
 #ifdef GRB
     SLRModel();
     void                    printResult();
+    void        set(GRB_IntParam flag, int todo);
+    void        set(GRB_DoubleParam flag, float todo);
 #elif OSQP
     SLRModel();
     void                    printResult();
