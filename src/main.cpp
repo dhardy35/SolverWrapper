@@ -4,9 +4,7 @@
 
 #include <vector>
 #include <iostream>
-#include "Expression.h"
-#include "ConstraintExpression.h"
-
+#include "Model.h"
 #ifndef GRB
 #ifndef OSQP
 #error compile selecting one solver, i.e. include in compiler parameters: -DOSQP or -DGRB
@@ -16,6 +14,7 @@
 
 int main()
 {
+
     try
     {
         SLRModel<double> model;
@@ -27,14 +26,12 @@ int main()
         SLRExpr<double> member1;
         SLRExpr<double> member2;
         SLRExpr<double> member3;
-
         member1 = x * x;
         member2 = z * y * 2 * 3;
         member3 = 2 * z * z * -1;
-        expr = expr + member1;
-        expr = expr + member2;
-        expr = expr + member3;
-        //expr = expr - y;
+        expr += member1;
+        expr += member2;
+        expr -= member3;
         expr *= 1;
 
         model.setObjective(expr, SLR_MAXIMIZE);

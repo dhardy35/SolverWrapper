@@ -6,12 +6,15 @@
 #ifndef SOLVEUR_VARIABLE_H
 #define SOLVEUR_VARIABLE_H
 
-#include <iostream>
-#include <algorithm>
+#include "Expression.h"
 
 template <typename T>
-class SLRVar
+class SLRVar : public SLRExpr<T>
 {
+    using SLRExpr<T>::_constant;
+    using SLRExpr<T>::_coeffs;
+    using SLRExpr<T>::_vars;
+    using SLRExpr<T>::_varIndex;
 private:
     T               _lowerBound;
     T               _upperBound;
@@ -19,9 +22,7 @@ private:
     std::string     _name;
 
 public:
-    SLRVar() = default;
     SLRVar(const T &, const T &, const T &, const std::string &);
-
     std::string getName() const;
     T getLowerBound() const;
     T getUpperBound() const;

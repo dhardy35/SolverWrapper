@@ -8,6 +8,7 @@
 
 #include "Expression.h"
 
+template <class T> class SLRConstrExpr;
 
 template <typename T> SLRConstrExpr<T> operator<=(const SLRExpr<T> &, const SLRExpr<T> &);
 template <typename T> SLRConstrExpr<T> operator>=(const SLRExpr<T> &, const SLRExpr<T> &);

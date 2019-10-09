@@ -17,22 +17,17 @@
 #include "osqp.h"
 #endif
 
-#include "Variable.h"
 #include "SLRException.h"
+#include "Variable.h"
+#include "ConstraintExpression.h"
 
-/* Constraint senses */
 
-#define SLR_LESS_EQUAL    '<'
-#define SLR_GREATER_EQUAL '>'
-#define SLR_EQUAL         '='
 
 /* Objective sense */
 
 #define SLR_MINIMIZE 1
 #define SLR_MAXIMIZE -1
 
-template <class T> class SLRExpr;
-template <typename T> class SLRConstrExpr;
 
 template <typename T>
 class SLRModel

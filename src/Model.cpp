@@ -126,11 +126,12 @@ template <typename T>
 void    SLRModel<T>::optimize()
 {
     // temporary not doing anything
-    /*
+
     for (int i = 0; i < _varsVector.size(); i++)
     {
+        std::cout << _varsVector[i].getSolution() << std::endl;
         _vars[i].set(GRB_DoubleAttr_Start, _varsVector[i].getSolution());
-    }*/
+    }
 
     _model->optimize();
     _solutionState = _model->get(GRB_IntAttr_SolCount);
@@ -140,7 +141,6 @@ template <typename T>
 SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name)
 {
     SLRVar<T>   variable(lowerBound, upperBound, solution, name);
-
     _varsVector.push_back(variable);
     _nbVar++;
 
