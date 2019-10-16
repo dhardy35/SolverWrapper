@@ -9,6 +9,20 @@
 #include "Expression.h"
 
 template <typename T>
+class SLRVarRep
+{
+private:
+    T               _lowerBound;
+    T               _upperBound;
+    T               _solution;
+    std::string     _name;
+public:
+    SLRVarRep(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name)
+    : _lowerBound(lowerBound), _upperBound(upperBound), _solution(solution), _name(name)
+    {}
+};
+
+template <typename T>
 class SLRVar : public SLRExpr<T>
 {
     using SLRExpr<T>::_constant;
@@ -16,18 +30,16 @@ class SLRVar : public SLRExpr<T>
     using SLRExpr<T>::_vars;
     using SLRExpr<T>::_varIndex;
 private:
-    T               _lowerBound;
-    T               _upperBound;
-    T               _solution;
-    std::string     _name;
+    std::shared_ptr<SLRVarRep<T>>   _varRep;
 
 public:
     SLRVar(const T &, const T &, const T &, const std::string &);
+    SLRVar();
+    T get() const;
     std::string getName() const;
     T getLowerBound() const;
     T getUpperBound() const;
     T getSolution() const;
-    T get() const;
 
     void set(const T &);
     bool operator==(const SLRVar<T> &) const;

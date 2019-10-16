@@ -17,29 +17,26 @@
 #define SLR_GREATER_EQUAL '>'
 #define SLR_EQUAL         '='
 
-template <class T> class SLRExpr;
-template <class T> class SLRVar;
-template <class T> class SLRModel;
-template <class T> class SLRConstrExpr;
+template <typename T> class SLRExpr;
+template <typename T> class SLRVar;
+template <typename T> class SLRModel;
+template <typename T> class SLRConstrExpr;
 
 template <typename T> SLRExpr<T> operator*(const SLRExpr<T> &x, const SLRExpr<T> &y);
-template <typename T> SLRExpr<T> operator*(const double &, const SLRExpr<T> &);
-template <typename T> SLRExpr<T> operator*(const SLRExpr<T> &, const double &);
 
-//template <typename T> SLRExpr<T> operator*(const SLRExpr<T> &, const double &);
+template <typename T> SLRExpr<T> operator*(const SLRExpr<T> &, const double &);
 template <typename T> SLRExpr<T> operator*(const double &, const SLRExpr<T> &);
+
 template <typename T> SLRExpr<T> operator/(const SLRExpr<T> &, const double &);
 template <typename T> SLRExpr<T> operator/(const double &, const SLRExpr<T> &);
 
-template <typename T> SLRExpr<T> operator+(const double &, const SLRExpr<T> &);
-//template <typename T> SLRExpr<T> operator+(const SLRExpr<T> &, const SLRExpr<T> &);
 template <typename T> SLRExpr<T> operator+(const SLRExpr<T> &, const SLRExpr<T> &);
 template <typename T> SLRExpr<T> operator+(const SLRExpr<T> &, const double &);
+template <typename T> SLRExpr<T> operator+(const double &, const SLRExpr<T> &);
 
-template <typename T> SLRExpr<T> operator-(const double &, const SLRExpr<T> &);
 template <typename T> SLRExpr<T> operator-(const SLRExpr<T> &, const SLRExpr<T> &);
-//template <typename T> SLRExpr<T> operator-(const SLRExpr<T> &, const SLRExpr<T> &);
 template <typename T> SLRExpr<T> operator-(const SLRExpr<T> &, const double &);
+template <typename T> SLRExpr<T> operator-(const double &, const SLRExpr<T> &);
 template <typename T> SLRExpr<T> operator-(const SLRExpr<T> &);
 
 
@@ -62,14 +59,11 @@ class SLRExpr
 protected:
     double                               _constant;
     std::vector<double>                  _coeffs;
-    std::vector<std::vector<SLRVar<T>>> _vars;
+    std::vector<std::vector<SLRVar<T>*>>  _vars;
     int                                  _varIndex;
 
 private:
-    //SLRExpr(const SLRExpr<T> &, const double &);
-    //SLRExpr(const SLRExpr<T> &, const SLRExpr<T> &);
     SLRExpr(const SLRVar<T> &);
-    void    simplify();
 
 public:
 
@@ -81,40 +75,27 @@ public:
 
     friend SLRExpr<T> operator*<>(const SLRExpr<T> &, const SLRExpr<T> &);
 
-    friend SLRExpr<T> operator*<>(const double &, const SLRExpr<T> &);
     friend SLRExpr<T> operator*<>(const SLRExpr<T> &, const double &);
+    friend SLRExpr<T> operator*<>(const double &, const SLRExpr<T> &);
 
-    //friend SLRExpr<T> operator*<>(const SLRExpr<T> &, const double &);
     friend SLRExpr<T> operator/<>(const SLRExpr<T> &, const double &);
     friend SLRExpr<T> operator/<>(const double &, const SLRExpr<T> &);
 
-    friend SLRExpr<T> operator+<>(const double &, const SLRExpr<T> &);
     friend SLRExpr<T> operator+<>(const SLRExpr<T> &, const SLRExpr<T> &);
-    //friend SLRExpr<T> operator+<>(const SLRExpr<T> &, const SLRExpr<T> &);
     friend SLRExpr<T> operator+<>(const SLRExpr<T> &, const double &);
+    friend SLRExpr<T> operator+<>(const double &, const SLRExpr<T> &);
 
-    friend SLRExpr<T> operator-<>(const double &, const SLRExpr<T> &);
     friend SLRExpr<T> operator-<>(const SLRExpr<T> &, const SLRExpr<T> &);
-    //friend SLRExpr<T> operator-<>(const SLRExpr<T> &, const SLRExpr<T> &);
     friend SLRExpr<T> operator-<>(const SLRExpr<T> &, const double &);
+    friend SLRExpr<T> operator-<>(const double &, const SLRExpr<T> &);
     friend SLRExpr<T> operator-<>(const SLRExpr<T> &);
 
-    //SLRExpr<T> operator*(const SLRExpr<T> &);
-    //SLRExpr<T> operator*(const double &);
-    //SLRExpr<T> operator/(const double &);
-    //SLRExpr<T> operator*(const SLRExpr<T> &);
+    void    simplify();
 
-    //SLRExpr<T> operator+(const double &);
-    //SLRExpr<T> operator+(const SLRExpr<T> &);
-    //SLRExpr<T> operator+(const SLRExpr<T> &);
     void operator+=(const SLRExpr<T> &);
     void operator-=(const SLRExpr<T> &);
-    void operator*=(const double &);
 
-    //SLRExpr<T> operator-(const double &);
-    //SLRExpr<T> operator-(const SLRExpr<T> &);
-    //SLRExpr<T> operator-(const SLRExpr<T> &);
-    //SLRExpr<T> operator-=(const SLRExpr<T> &);
+    void operator*=(const double &);
     void operator/=(const double &);
 
 };

@@ -32,7 +32,7 @@
 template <typename T>
 class SLRModel
 {
-private:
+public:
     std::vector<SLRVar<T>>  _varsVector;
     int                     _nbVar;
     int                     _solutionState;

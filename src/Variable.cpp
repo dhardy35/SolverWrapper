@@ -6,14 +6,14 @@
 
 template <typename T>
 SLRVar<T>::SLRVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name)
-        : _lowerBound(lowerBound), _upperBound(upperBound), _solution(solution), _name(name)
 {
-    _varIndex = 0;
-    _constant = 0;
-    _coeffs.push_back(1);
-    _vars.push_back(std::vector<SLRVar<T>>());
-    _vars.at(_varIndex).push_back(*this);
-    _varIndex++;
+    _varRep = std::make_shared<SLRVarRep<T>>(lowerBound, upperBound, solution, name);
+}
+
+template <typename T>
+SLRVar<T>::SLRVar() : _lowerBound(0.0), _upperBound(0.0), _solution(0.0), _name("")
+{
+    _varRep = std::make_shared<SLRVarRep<T>>(0.0, 0.0, 0.0, "");
 }
 
 template <typename T>

@@ -18,176 +18,97 @@ SLRExpr<T>::SLRExpr(const double &constant) : _varIndex(0), _constant(constant)
 }
 
 template <class T>
-SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0), _constant(0)
+SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0), _constant(x._constant)
 {
     _coeffs.push_back(1);
     _vars.push_back(std::vector<SLRVar<T>>());
     _vars.at(_varIndex).push_back(x);
     _varIndex++;
 }
-/*
-template <class T>
-SLRExpr<T>::SLRExpr(const SLRExpr<T> &x, const double &coeff) : _varIndex(0), _constant(0)
-{
-    _coeffs.push_back(coeff);
-    _vars.push_back(std::vector<SLRExpr<T>>());
-    _vars.at(_varIndex).push_back(x);
-}*/
-/*
-template <class T>
-SLRExpr<T>::SLRExpr(const SLRExpr<T> &x, const SLRExpr<T> &y) : _varIndex(0), _constant(0)
-{
-    _coeffs.push_back(1);
-    _vars.push_back(std::vector<SLRExpr<T>>());
-    _vars.at(_varIndex).push_back(x);
-    // sort in alphabetical order
-    if (x < y)
-        _vars.at(_varIndex).push_back(y);
-    else
-        _vars.at(_varIndex).insert(_vars.at(_varIndex).begin(), y);
-}*/
 
+//-----------------
+//        *
+//-----------------
 template <typename T>
 SLRExpr<T> operator*(const SLRExpr<T> &x, const SLRExpr<T> &y)
 {
-    SLRExpr<T> outPut(x);
-    for (int i = 0; i < outPut._vars.size(); i++)
+    SLRExpr<T> result;
+    for (int i = 0; i < x._varIndex; i++)
     {
-        for (int j = 0; j < y._vars.size(); j++)
+        for (int j = 0; j < y._varIndex; j++)
         {
-            outPut._coeffs[i] *= y._coeffs[j];
-            outPut._vars[i].push_back(y._vars[j][0]);
-            if (y._vars[j].size() == 2)
-                outPut._vars[i].push_back(y._vars[j][1]);
-            //simplify();
+            if (x._coeffs[i] * y._coeffs[j] != 0.0)
+            {
+                result._coeffs.push_back(x._coeffs[i] * y._coeffs[j]);
+                result._vars.push_back(x._vars[i]);
+                result._vars[result._varIndex].insert(result._vars[result._varIndex].end(), y._vars[j].begin(),
+                                                      y._vars[j].end());
+
+                result.simplify();
+                result._varIndex++;
+            }
+        }
+        if (x._coeffs[i] * y._constant != 0.0)
+        {
+            result._vars.push_back(x._vars[i]);
+            result._coeffs.push_back(x._coeffs[i] * y._constant);
+            result.simplify();
+            result._varIndex++;
         }
     }
-    return outPut;
-}
-
-template <typename T>
-SLRExpr<T> operator*(const double &k, const SLRExpr<T> &inExpr)
-{
-    SLRExpr<T> outPut(inExpr);
-    for (auto &coeff : outPut._coeffs)
-        coeff *= k;
-    return (outPut);
+    for (int j = 0; j < y._varIndex; j++)
+    {
+        if (x._constant * y._coeffs[j] != 0.0)
+        {
+            result._coeffs.push_back(x._constant * y._coeffs[j]);
+            result._vars.push_back(y._vars[j]);
+            result.simplify();
+            result._varIndex++;
+        }
+    }
+    result._constant = x._constant * y._constant;
+    return result;
 }
 
 template <typename T>
 SLRExpr<T> operator*(const SLRExpr<T> &inExpr, const double &k)
 {
     SLRExpr<T> outPut(inExpr);
-    for (auto &coeff : outPut._coeffs)
-        coeff *= k;
+    if (k == 0)
+    {
+        outPut._coeffs.clear();
+        outPut._vars.clear();
+        outPut._varIndex = 0;
+    }
+    else
+        {
+        for (auto &coeff : outPut._coeffs)
+            coeff *= k;
+    }
     return (outPut);
 }
 
 template <typename T>
-SLRExpr<T> operator+(const double &constant, const SLRExpr<T> &inExpr)
+SLRExpr<T> operator*(const double &k, const SLRExpr<T> &inExpr)
 {
-    SLRExpr<T> expr(inExpr);
-    expr = expr + constant;
-    return expr;
+    SLRExpr<T> outPut(inExpr);
+    if (k == 0)
+    {
+        outPut._coeffs.clear();
+        outPut._vars.clear();
+        outPut._varIndex = 0;
+    }
+    else
+    {
+        for (auto &coeff : outPut._coeffs)
+            coeff *= k;
+    }
+    return (outPut);
 }
 
-template <typename T>
-SLRExpr<T> operator+(const SLRExpr<T> &x, const SLRExpr<T> &y)
-{
-    SLRExpr<T>  outPut(x);
-    outPut._varIndex += y._varIndex;
-    outPut._coeffs.insert(outPut._coeffs.end(), y._coeffs.begin(), y._coeffs.end());
-    outPut._vars.insert(outPut._vars.end(), y._vars.begin(), y._vars.end());
-    return outPut;
-}
-/*
-template <typename T>
-SLRExpr<T> operator+(const SLRExpr<T> &x, const SLRExpr<T> &y)
-{
-    SLRExpr<T> expr(x);
-    expr = expr + y;
-    return (expr);
-}*/
-
-template <typename T>
-SLRExpr<T> operator+(const SLRExpr<T> &x, const double &constant)
-{
-    SLRExpr<T> expr(x);
-    expr = expr + constant;
-    return (expr);
-}
-
-template <typename T>
-SLRExpr<T> operator-(const double &constant, const SLRExpr<T> &inExpr)
-{
-    SLRExpr<T> expr(inExpr);
-    expr = expr - constant;
-    return expr;
-}
-
-template <typename T>
-SLRExpr<T> operator-(const SLRExpr<T> &x, const SLRExpr<T> &y)
-{
-    SLRExpr<T>  outPut(x);
-    SLRExpr<T>  inExpr(y);
-    outPut._varIndex += inExpr._varIndex;
-    for (auto &coeff : inExpr._coeffs)
-        coeff *= -1;
-    outPut._coeffs.insert(outPut._coeffs.end(), inExpr._coeffs.begin(), inExpr._coeffs.end());
-    outPut._vars.insert(outPut._vars.end(), inExpr._vars.begin(), inExpr._vars.end());
-}
-
-template <typename T>
-SLRExpr<T> operator-(const SLRExpr<T> &inExpr)
-{
-    SLRExpr<T> expr(inExpr);
-    for (auto &coeff : expr._coeffs)
-        coeff *= -1;
-    return expr;
-}
-/*
-template <typename T>
-SLRExpr<T> operator-(const SLRExpr<T> &x, const SLRExpr<T> &y)
-{
-    SLRExpr<T> expr(x);
-    expr = expr - y;
-    return (expr);
-}*/
-
-template <typename T>
-SLRExpr<T> operator-(const SLRExpr<T> &inExpr, const double &constant)
-{
-    SLRExpr<T> expr(inExpr);
-    expr = expr - constant;
-    return expr;
-}
-/*
-template <typename T>
-SLRExpr<T> operator*(const SLRExpr<T> &expr, const double &k)
-{
-    SLRExpr<T> ex = expr;
-    for (auto &coeff : ex._coeffs)
-        coeff *= k;
-    return (ex);
-}*/
-/*
-template <typename T>
-SLRExpr<T> operator*(const double &k, const SLRExpr<T> &expr)
-{
-    SLRExpr<T> ex = expr;
-    for (auto &coeff : ex._coeffs)
-        coeff *= k;
-    return (ex);
-}*/
-/*
-template <typename T>
-SLRExpr<T> operator/(const SLRExpr<T> &expr, const double &k)
-{
-    SLRExpr<T> ex = expr;
-    for (auto &coeff : ex._coeffs)
-        coeff /= k;
-    return (ex);
-}*/
+//-----------------
+//        /
+//-----------------
 
 template <typename T>
 SLRExpr<T> operator/(const double &k, const SLRExpr<T> &inExpr)
@@ -207,106 +128,99 @@ SLRExpr<T> operator/(const SLRExpr<T> &inExpr, const double &k)
     return (outPut);
 }
 
-/*
+//-----------------
+//        +
+//-----------------
+
 template <typename T>
-SLRExpr<T> SLRExpr<T>::operator*(const SLRExpr<T> &expr)
+SLRExpr<T> operator+(const double &constant, const SLRExpr<T> &inExpr)
 {
-    SLRExpr<T> x(*this);
-    for (int i = 0; i < x._vars.size(); i++)
-    {
-        for (int j = 0; j < expr._vars.size(); j++)
-        {
-            x._coeffs[i] *= expr._coeffs[j];
-            x._vars[i].push_back(expr._vars[j][0]);
-            if (expr._vars[j].size() == 2)
-                x._vars[i].push_back(expr._vars[j][1]);
-            simplify();
-        }
-    }
-    return x;
+    SLRExpr<T> expr(inExpr);
+    expr._constant += constant;
+    return expr;
 }
 
-
 template <typename T>
-SLRExpr<T> SLRExpr<T>::operator*(const double &k)
+SLRExpr<T> operator+(const SLRExpr<T> &x, const SLRExpr<T> &y)
 {
-    SLRExpr<T> outPut(*this);
-    for (auto &coeff : outPut._coeffs)
-        coeff *= k;
+    SLRExpr<T>  outPut(x);
+    outPut += y;
     return outPut;
 }
 
 template <typename T>
-SLRExpr<T> SLRExpr<T>::operator/(const double &k)
+SLRExpr<T> operator+(const SLRExpr<T> &x, const double &constant)
 {
-    SLRExpr<T> outPut(*this);
-    for (auto &coeff : outPut._coeffs)
-        coeff /= k;
-    return outPut;
-}*/
-/*
-template <typename T>
-SLRExpr<T> SLRExpr<T>::operator*(const SLRExpr<T> &x)
-{
-    SLRExpr<T> outPut(*this);
-    int i;
-    // add variable in the right alphabetical place
-    for (i = 0; i < outPut._vars.at(outPut._varIndex).size()
-                && outPut._vars.at(outPut._varIndex)[i] < x; i++) {};
-    outPut._vars.at(outPut._varIndex).insert(outPut._vars.at(outPut._varIndex).begin() + i, x);
-    if (outPut._vars.at(outPut._varIndex).size() > 2)
-        throw SLRException(021203, "SLRExpr::operator*(SLRExpr)", "three dimensional is not allowed");
+    SLRExpr<T> expr(x);
+    expr._constant += constant;
+    return (expr);
+}
 
-    return outPut;
-}*/
-/*
+//-----------------
+//        -
+//-----------------
+
 template <typename T>
-SLRExpr<T> SLRExpr<T>::operator+(const double &constant)
+SLRExpr<T> operator-(const double &constant, const SLRExpr<T> &inExpr)
 {
-    SLRExpr<T> outPut(*this);
-    outPut._constant = constant;
+    SLRExpr<T> expr(inExpr);
+    expr = -expr;
+    expr._constant = constant + expr._constant;
+    return expr;
+}
+
+template <typename T>
+SLRExpr<T> operator-(const SLRExpr<T> &x, const SLRExpr<T> &y)
+{
+    SLRExpr<T>  outPut(x);
+    outPut -= y;
     return outPut;
 }
 
 template <typename T>
-SLRExpr<T> SLRExpr<T>::operator+(const SLRExpr<T> &x)
+SLRExpr<T> operator-(const SLRExpr<T> &inExpr)
 {
-    SLRExpr<T> outPut(*this);
-    outPut._varIndex++;
-    outPut._coeffs.push_back(1);
-    outPut._vars.push_back(std::vector<SLRExpr<T>>());
-    outPut._vars.at(outPut._varIndex).push_back(x);
-    simplify();
-    return outPut;
-}*/
-/*
-// fuse two expressions
+    SLRExpr<T> expr(inExpr);
+    for (auto &coeff : expr._coeffs)
+        coeff *= -1;
+    expr._constant *= -1;
+    return expr;
+}
+
 template <typename T>
-SLRExpr<T> SLRExpr<T>::operator+(const SLRExpr<T> &expr)
+SLRExpr<T> operator-(const SLRExpr<T> &inExpr, const double &constant)
 {
-    SLRExpr<T> outPut(*this);
-    return outPut += expr;
-}*/
+    SLRExpr<T> expr(inExpr);
+    expr._constant -= constant;
+    return expr;
+}
+
+//------------------
+// change Expression
+//------------------
 
 template <typename T>
 void SLRExpr<T>::operator+=(const SLRExpr<T> &expr)
 {
-    _varIndex += expr._varIndex;
-    _coeffs.insert(_coeffs.end(), expr._coeffs.begin(), expr._coeffs.end());
-    _vars.insert(_vars.end(), expr._vars.begin(), expr._vars.end());
-    //simplify();
+    for (int i = 0; i < expr._varIndex; i++)
+    {
+        if (expr._coeffs[i] != 0.0)
+        {
+            _coeffs.push_back(expr._coeffs[i]);
+            _vars.push_back(expr._vars[i]);
+            simplify();
+            _varIndex++;
+        }
+    }
+    _constant += expr._constant;
 }
 
 template <typename T>
 void SLRExpr<T>::operator-=(const SLRExpr<T> &expr)
 {
     SLRExpr<T> inExpr(expr);
-    _varIndex += inExpr._varIndex;
-    for (auto &coeff : inExpr._coeffs)
-        coeff *= -1;
-    _coeffs.insert(_coeffs.end(), inExpr._coeffs.begin(), inExpr._coeffs.end());
-    _vars.insert(_vars.end(), inExpr._vars.begin(), inExpr._vars.end());
-    //simplify();
+    inExpr = -inExpr;
+    *this += inExpr;
 }
 
 template <typename T>
@@ -315,47 +229,6 @@ void SLRExpr<T>::operator*=(const double &k)
     for (auto &coeff : _coeffs)
         coeff *= k;
 }
-/*
-template <typename T>
-SLRExpr<T> SLRExpr<T>::operator-(const double &constant)
-{
-    SLRExpr<T> outPut(*this);
-    outPut._constant = -constant;
-    return outPut;
-}
-
-template <typename T>
-SLRExpr<T> SLRExpr<T>::operator-(const SLRExpr<T> &x)
-{
-    SLRExpr<T> outPut(*this);
-    outPut._varIndex++;
-    outPut._coeffs.push_back(-1);
-    outPut._vars.push_back(std::vector<SLRExpr<T>>());
-    outPut._vars.at(outPut._varIndex).push_back(x);
-    simplify();
-    return outPut;
-}*/
-/*
-// fuse two expressions
-template <typename T>
-SLRExpr<T> SLRExpr<T>::operator-(const SLRExpr<T> &expr)
-{
-    SLRExpr<T> outPut(*this);
-    outPut._varIndex++;
-    outPut._coeffs.insert(outPut._coeffs.end(), expr._coeffs.begin(), expr._coeffs.end());
-    outPut._vars.insert(outPut._vars.end(), expr._vars.begin(), expr._vars.end());
-    for (int i = 0; i <= expr._varIndex; i++)
-        outPut._coeffs[outPut._varIndex + i] *= -1;
-    outPut._varIndex += expr._varIndex;
-    simplify();
-    return outPut;
-}*/
-/*
-template <typename T>
-SLRExpr<T> SLRExpr<T>::operator-=(const SLRExpr<T> &expr)
-{
-    return *this - expr;
-}*/
 
 template <typename T>
 void SLRExpr<T>::operator/=(const double &k)
@@ -372,22 +245,28 @@ template <typename T>
 void    SLRExpr<T>::simplify()
 {
     // tmp remove to win time
-    /*for (int i = 0; i < _varIndex; i++)
+    for (int i = _varIndex - 1; i >= 0; i--)
     {
         if (_vars[_varIndex].size() == _vars[i].size())
         {
             int tmp = 0;
-            for (int j = 0; j < _vars[i].size() &&
-                            _vars[i][j] == _vars[_varIndex][j]; j++, tmp++);
+            for (tmp = 0; tmp < _vars[i].size() &&
+                    _vars[i][tmp] == _vars[_varIndex][tmp]; tmp++);
             if (tmp == _vars[i].size())
             {
-                _vars.erase(_vars.begin() + _varIndex);
                 _coeffs[i] += _coeffs[_varIndex];
+                _vars.erase(_vars.begin() + _varIndex);
                 _coeffs.erase(_coeffs.begin() + _varIndex);
                 _varIndex--;
+                if (_coeffs[i] == 0.0)
+                {
+                    _coeffs.erase(_coeffs.begin() + i);
+                    _vars.erase(_vars.begin() + i);
+                    _varIndex--;
+                }
                 return ;
             }
         }
-    }*/
+    }
 }
 

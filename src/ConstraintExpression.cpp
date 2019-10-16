@@ -9,38 +9,8 @@ SLRConstrExpr<T>::SLRConstrExpr(const SLRExpr<T> &exprLeft, const SLRExpr<T> &ex
 {
     // get constraint from expression's constants
     _constr = exprRight._constant - exprLeft._constant;
+    _expr -= exprRight;
     _expr._constant = 0;
-    int k;
-    bool    found;
-    // we try to find similarities in the expression
-    // ex : 2x == 3x + 1 will be -x == 1
-    for (int i = 0; i <= exprRight._varIndex; i++)
-    {
-        found = false;
-        for (int j = 0; j <= _expr._varIndex && !found; j++)
-        {
-            if (exprRight._vars[i].size() == _expr._vars[j].size())
-            {
-                for (k = 0; k < exprRight._vars[i].size() &&
-                            exprRight._vars[i][k] == _expr._vars[j][k]; k++);
-                if (k == _expr._vars[j].size())
-                {
-                    _expr._coeffs[j] -= exprRight._coeffs[i];
-                    found = true;
-                }
-            }
-        }
-        // if the left expression doesn't have a part that the right expression has
-        // we transfer it
-        // ex : 3x == 3y + 1 will be 3x - 3y == 1
-        if (!found)
-        {
-            if (exprRight._vars[i].size() == 2)
-                _expr = _expr + -exprRight._coeffs[i] * exprRight._vars[i][0] * exprRight._vars[i][1];
-            else
-                _expr = _expr + -exprRight._coeffs[i] * exprRight._vars[i][0];
-        }
-    }
 }
 
 template <typename T>
@@ -50,8 +20,6 @@ SLRConstrExpr<T>::SLRConstrExpr(const SLRExpr<T> &exprLeft, const double &constr
     _constr = constr - exprLeft._constant;
     _expr._constant = 0;
 }
-
-
 template <typename T>
 SLRConstrExpr<T> operator<=(const SLRExpr<T> &exprLeft, const SLRExpr<T> &exprRight)
 { return (SLRConstrExpr<T>(exprLeft, exprRight, SLR_LESS_EQUAL));}
