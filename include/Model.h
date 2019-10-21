@@ -9,10 +9,10 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 
 #ifdef GRB
 #include "gurobi_c++.h"
-#include <memory>
 #elif OSQP
 #include "osqp.h"
 #endif
@@ -81,6 +81,7 @@ public:
 
 #ifdef GRB
     SLRModel();
+    SLRModel(const GRBEnv &);
     void                    printResult();
     void        set(GRB_IntParam flag, int todo);
     void        set(GRB_DoubleParam flag, float todo);

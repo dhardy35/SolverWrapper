@@ -2,6 +2,7 @@
 // Created by adrien_bedel on 09/09/19.
 //
 
+#include <Variable.h>
 #include "Expression.h"
 
 
@@ -17,14 +18,14 @@ SLRExpr<T>::SLRExpr(const double &constant) : _varIndex(0), _constant(constant)
 
 }
 
-template <class T>
-SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0), _constant(x._constant)
+/*template <class T>
+SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0), _constant(0)
 {
     _coeffs.push_back(1);
-    _vars.push_back(std::vector<SLRVar<T>>());
-    _vars.at(_varIndex).push_back(x);
+    _vars.push_back(std::vector<std::shared_ptr<SLRVarRep<T>>>());
+    _vars.at(_varIndex).push_back(x._varRep);
     _varIndex++;
-}
+}*/
 
 //-----------------
 //        *
@@ -44,7 +45,6 @@ SLRExpr<T> operator*(const SLRExpr<T> &x, const SLRExpr<T> &y)
                 result._vars[result._varIndex].insert(result._vars[result._varIndex].end(), y._vars[j].begin(),
                                                       y._vars[j].end());
 
-                result.simplify();
                 result._varIndex++;
             }
         }
@@ -52,7 +52,6 @@ SLRExpr<T> operator*(const SLRExpr<T> &x, const SLRExpr<T> &y)
         {
             result._vars.push_back(x._vars[i]);
             result._coeffs.push_back(x._coeffs[i] * y._constant);
-            result.simplify();
             result._varIndex++;
         }
     }
@@ -62,7 +61,6 @@ SLRExpr<T> operator*(const SLRExpr<T> &x, const SLRExpr<T> &y)
         {
             result._coeffs.push_back(x._constant * y._coeffs[j]);
             result._vars.push_back(y._vars[j]);
-            result.simplify();
             result._varIndex++;
         }
     }
@@ -73,36 +71,24 @@ SLRExpr<T> operator*(const SLRExpr<T> &x, const SLRExpr<T> &y)
 template <typename T>
 SLRExpr<T> operator*(const SLRExpr<T> &inExpr, const double &k)
 {
+    if (k == 0.0)
+        return (SLRExpr<T>());
     SLRExpr<T> outPut(inExpr);
-    if (k == 0)
-    {
-        outPut._coeffs.clear();
-        outPut._vars.clear();
-        outPut._varIndex = 0;
-    }
-    else
-        {
-        for (auto &coeff : outPut._coeffs)
-            coeff *= k;
-    }
+    for (auto &coeff : outPut._coeffs)
+        coeff *= k;
+    outPut._constant *= k;
     return (outPut);
 }
 
 template <typename T>
 SLRExpr<T> operator*(const double &k, const SLRExpr<T> &inExpr)
 {
+    if (k == 0.0)
+        return (SLRExpr<T>());
     SLRExpr<T> outPut(inExpr);
-    if (k == 0)
-    {
-        outPut._coeffs.clear();
-        outPut._vars.clear();
-        outPut._varIndex = 0;
-    }
-    else
-    {
-        for (auto &coeff : outPut._coeffs)
-            coeff *= k;
-    }
+    for (auto &coeff : outPut._coeffs)
+        coeff *= k;
+    outPut._constant *= k;
     return (outPut);
 }
 
@@ -116,6 +102,7 @@ SLRExpr<T> operator/(const double &k, const SLRExpr<T> &inExpr)
     SLRExpr<T> outPut(inExpr);
     for (auto &coeff : outPut._coeffs)
         coeff /= k;
+    outPut._constant /= k;
     return (outPut);
 }
 
@@ -125,6 +112,7 @@ SLRExpr<T> operator/(const SLRExpr<T> &inExpr, const double &k)
     SLRExpr<T> outPut(inExpr);
     for (auto &coeff : outPut._coeffs)
         coeff /= k;
+    outPut._constant /= k;
     return (outPut);
 }
 
@@ -202,16 +190,9 @@ SLRExpr<T> operator-(const SLRExpr<T> &inExpr, const double &constant)
 template <typename T>
 void SLRExpr<T>::operator+=(const SLRExpr<T> &expr)
 {
-    for (int i = 0; i < expr._varIndex; i++)
-    {
-        if (expr._coeffs[i] != 0.0)
-        {
-            _coeffs.push_back(expr._coeffs[i]);
-            _vars.push_back(expr._vars[i]);
-            simplify();
-            _varIndex++;
-        }
-    }
+    _coeffs.insert(_coeffs.end(), expr._coeffs.begin(), expr._coeffs.end());
+    _vars.insert(_vars.end(), expr._vars.begin(), expr._vars.end());
+    _varIndex += expr._varIndex;
     _constant += expr._constant;
 }
 
@@ -226,8 +207,19 @@ void SLRExpr<T>::operator-=(const SLRExpr<T> &expr)
 template <typename T>
 void SLRExpr<T>::operator*=(const double &k)
 {
-    for (auto &coeff : _coeffs)
-        coeff *= k;
+    if (k == 0.0)
+    {
+        _coeffs.clear();
+        _vars.clear();
+        _varIndex = 0;
+        _constant = 0;
+    }
+    else
+    {
+        for (auto &coeff : _coeffs)
+            coeff *= k;
+        _constant *= k;
+    }
 }
 
 template <typename T>
@@ -235,6 +227,7 @@ void SLRExpr<T>::operator/=(const double &k)
 {
     for (auto &coeff : _coeffs)
         coeff /= k;
+    _constant /= k;
 }
 
 
@@ -245,7 +238,7 @@ template <typename T>
 void    SLRExpr<T>::simplify()
 {
     // tmp remove to win time
-    for (int i = _varIndex - 1; i >= 0; i--)
+    /*for (int i = _varIndex - 1; i >= 0; i--)
     {
         if (_vars[_varIndex].size() == _vars[i].size())
         {
@@ -267,6 +260,6 @@ void    SLRExpr<T>::simplify()
                 return ;
             }
         }
-    }
+    }*/
 }
 

@@ -20,6 +20,18 @@ public:
     SLRVarRep(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name)
     : _lowerBound(lowerBound), _upperBound(upperBound), _solution(solution), _name(name)
     {}
+    friend class SLRVar<T>;
+    T get() const {return _solution; }
+    std::string getName() const { return _name; }
+    T getLowerBound() const {return _lowerBound; }
+    T getUpperBound() const {return _upperBound; }
+    T getSolution() const {return _solution; }
+
+    void setName(const std::string &name) { _name = name;}
+    void setLowerBound(const T &lowerBound) {_lowerBound = lowerBound;}
+    void setUpperBound(const T &upperBound) {_upperBound = upperBound; }
+    void setSolution(const T &solution) {_solution = solution; }
+    int operator[](const std::vector<SLRVar<T>> &) const;
 };
 
 template <typename T>
@@ -45,7 +57,9 @@ public:
     bool operator==(const SLRVar<T> &) const;
     bool operator==(const std::string &) const;
     bool operator<(const SLRVar<T> &) const;
-    int operator[](const std::vector<SLRVar<T>> &) const;
+    bool operator==(const std::shared_ptr<SLRVarRep<T>> &varRep) const;
+
+    std::shared_ptr<SLRVarRep<T>>   getVarRep() const;
 
 };
 

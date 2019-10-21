@@ -17,15 +17,14 @@ void SLRModel<T>::printExpression(const SLRExpr<T> &expr) const
             std::cout << expr._coeffs[i];
         for (int j = 0; j < expr._vars[i].size(); j++)
         {
-            std::cout << expr._vars[i][j].getName();
+            std::cout << expr._vars[i][j]->getName();
         }
         std::cout << " ";
         if (i != expr._varIndex - 1)
             std::cout << "+";
         std::cout << " ";
     }
-    if (expr._constant != 0)
-        std::cout << "+ " << expr._constant;
+    std::cout << "+ " << expr._constant;
     std::cout << std::endl;
 }
 
@@ -58,7 +57,14 @@ bool        SLRModel<T>::hasSolution() const
 
 // set always env as true, which means env is empty
 template <typename T>
-SLRModel<T>::SLRModel() : _env(true), _solutionState(0)
+SLRModel<T>::SLRModel() : _env(true), _solutionState(0), _nbVar(0)
+{
+    _env.start();
+    _model = std::make_shared<GRBModel>(_env);
+}
+
+template <typename T>
+SLRModel<T>::SLRModel(const GRBEnv &env) : _env(env), _solutionState(0), _nbVar(0)
 {
     _env.start();
     _model = std::make_shared<GRBModel>(_env);
@@ -70,13 +76,15 @@ GRBQuadExpr      SLRModel<T>::SLRExprToGRBQuadExpr(const SLRExpr<T> &expr)
     GRBQuadExpr finalExpr = 0.0;
     for (int i = 0; i < expr._varIndex; i++)
     {
+        if (i % (expr._varIndex / 100) == 0)
+            std::cout << (i * 100) / expr._varIndex << std::endl;
         if (expr._vars[i].size() == 2)
         {
-            finalExpr += _vars[expr._vars[i][0][_varsVector]] * _vars[expr._vars[i][1][_varsVector]] * expr._coeffs[i];
+            finalExpr += _vars[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] * _vars[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]))] * expr._coeffs[i];
         }
         else
         {
-            finalExpr += _vars[expr._vars[i][0][_varsVector]] * expr._coeffs[i];
+            finalExpr += _vars[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))]  * expr._coeffs[i];
         }
     }
     finalExpr += expr._constant;
@@ -95,10 +103,10 @@ GRBLinExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
         }
         else
         {
-            finalExpr += _vars[expr._vars[i][0][_varsVector]] * expr._coeffs[i];
-
+            finalExpr += _vars[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))]  * expr._coeffs[i];
         }
     }
+    finalExpr += expr._constant;
     return (finalExpr);
 }
 
@@ -114,8 +122,9 @@ void     SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 template <typename T>
 void     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
 {
-    GRBLinExpr grbExpr = SLRExprToGRBLineExpr(constrExpr._expr);
-    _model->addConstr(grbExpr, constrExpr._sign, constrExpr._constr, name);
+    GRBLinExpr grbExprRight = SLRExprToGRBLineExpr(constrExpr._exprRight);
+    GRBLinExpr grbExprLeft = SLRExprToGRBLineExpr(constrExpr._exprLeft);
+    _model->addConstr(grbExprLeft, constrExpr._sign, grbExprRight, name);
 }
 
 template <typename T>
@@ -133,7 +142,7 @@ void    SLRModel<T>::optimize()
     _solutionState = _model->get(GRB_IntAttr_SolCount);
     for (int i = 0;_solutionState > 0 && i < _vars.size(); i++)
     {
-       _varsVector[i].set(_vars[i].get(GRB_DoubleAttr_X));
+        _varsVector[i].set(_vars[i].get(GRB_DoubleAttr_X));
     }
 }
 
@@ -142,9 +151,9 @@ SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const 
 {
     std::string validName = name;
     if (name == "")
-        validName = "v_" + std::to_string(_nbVar);
+        validName = "myVar_" + std::to_string(_nbVar);
 
-     SLRVar<T> variable(lowerBound, upperBound, solution, validName);
+    SLRVar<T> variable(lowerBound, upperBound, solution, validName);
     _varsVector.push_back(variable);
     _nbVar++;
 
@@ -227,14 +236,14 @@ void SLRModel<T>::updateVariableConstraints()
         std::vector<double> constrCoeff(_nbVar, 0);
         _lowerBound.push_back(var.getLowerBound());
         _upperBound.push_back(var.getUpperBound());
-        constrCoeff[var[_varsVector]] = 1;
+        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var))] = 1;
         _constrCoeffs.push_back(constrCoeff);
         _nbConstr++;
     }
 }
 
 template <typename T>
-void SLRModel<T>::setObjective(SLRExpr<T> &expr, int goal)
+void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
     double   fullMatrix[_nbVar][_nbVar];
 
@@ -250,12 +259,12 @@ void SLRModel<T>::setObjective(SLRExpr<T> &expr, int goal)
     {
         if (expr._vars[i].size() == 2)
         {
-            fullMatrix[expr._vars[i][0][_varsVector]][expr._vars[i][1][_varsVector]] = expr._coeffs[i];
+            fullMatrix[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))][std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]))] = expr._coeffs[i];
             _quadricNb++;
         }
         else
         {
-            _linearCoeffs[expr._vars[i][0][_varsVector]] = expr._coeffs[i];
+            _linearCoeffs[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] = expr._coeffs[i];
         }
     }
 
@@ -295,26 +304,28 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
 {
     // only linear constraints
     std::vector<double> constrCoeff(_nbVar, 0);
-    for (int i = 0; i < constrExpr._expr._vars.size(); i++)
+    auto expr = constrExpr._exprLeft - constrExpr._exprRight;
+    float constant = -expr._constant;
+    for (int i = 0; i < expr._vars.size(); i++)
     {
-        if (constrExpr._expr._vars[i].size() > 1)
+        if (expr._vars[i].size() > 1)
             throw SLRException(031502, "SLRModel::addConstr", "only linear constraints are allowed");
-        constrCoeff[constrExpr._expr._vars[i][0][_varsVector]] = constrExpr._expr._coeffs[i];
+        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] = expr._coeffs[i];
     }
     _constrCoeffs.push_back(constrCoeff);
     if (constrExpr._sign == SLR_EQUAL)
     {
-        _lowerBound.push_back(constrExpr._constr);
-        _upperBound.push_back(constrExpr._constr);
+        _lowerBound.push_back(constant);
+        _upperBound.push_back(constant);
     }
     else if (constrExpr._sign == SLR_LESS_EQUAL)
     {
         _lowerBound.push_back(std::numeric_limits<double>::min());
-        _upperBound.push_back(constrExpr._constr);
+        _upperBound.push_back(constant);
     }
     else if (constrExpr._sign == SLR_GREATER_EQUAL)
     {
-        _lowerBound.push_back(constrExpr._constr);
+        _lowerBound.push_back(constant);
         _upperBound.push_back(std::numeric_limits<double>::max());
     }
     _nbConstr++;
@@ -423,19 +434,16 @@ void    SLRModel<T>::fillData()
 template <typename T>
 void    SLRModel<T>::optimize()
 {
-    if (_quadricNb != 0)
-    {
-        fillData();
+    fillData();
 
-        osqp_set_default_settings(&_settings);
+    osqp_set_default_settings(&_settings);
 
-        if (osqp_setup(&_work, &_data, &_settings) != 0)
-            throw SLRException(31804, "SLRModel::optimize", "osqp_setup failed");
+    if (osqp_setup(&_work, &_data, &_settings) != 0)
+        throw SLRException(31804, "SLRModel::optimize", "osqp_setup failed");
 
-        osqp_solve(_work);
+    osqp_solve(_work);
 
-        _solutionState = _work->info->status_polish;
-    }
+    _solutionState = _work->info->status_polish;
 }
 
 template <typename T>

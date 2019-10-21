@@ -10,7 +10,7 @@
 #error compile selecting one solver, i.e. include in compiler parameters: -DOSQP or -DGRB
 #endif
 #endif
-#define SIZE 20
+#define SIZE 2000
 
 int main() {
     float m[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -19,7 +19,7 @@ int main() {
     float B[3] = {0, 1, 0};
     float C[3] = {0, 0, 1};
 
-    static SLRModel<double> model;
+    SLRModel<double> model;
 
     //model.printDebug(false);
 
@@ -40,16 +40,18 @@ int main() {
     model.addConstr(M[6] * A[1] + M[7] * B[1] + M[8] * C[1] == 0.);
     model.addConstr(M[6] * A[2] + M[7] * B[2] + M[8] * C[2] == 1.);
 
+    model.setObjective(M[0] + M[1] + M[2] + M[3] + M[4] + M[5] + M[6] + M[7] + M[8] + M[9], SLR_MINIMIZE);
     model.optimize();
 
     for (int i = 0; i < 9; i++) {
-        m[i] = model._varsVector[i].get();
-        std::cout << m[i] << " ";
+        m[i] = M[i].getSolution();
+        std::cout << m[i] << " ,";
     }
+    model.printResult();
     std::cout << std::endl;
 
-      /*  // Create an environment
-    try {
+        // Create an environment
+    /*try {
 
 
         // Create an empty model
@@ -72,7 +74,7 @@ int main() {
         model.optimize();
         model.printResult();
     }
-    catch (const GRBException &e)
+    catch (const SLRException &e)
     {
             std::cerr << e.getMessage() << std::endl;
     }*/

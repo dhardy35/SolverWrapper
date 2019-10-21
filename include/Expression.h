@@ -19,6 +19,7 @@
 
 template <typename T> class SLRExpr;
 template <typename T> class SLRVar;
+template <typename T> class SLRVarRep;
 template <typename T> class SLRModel;
 template <typename T> class SLRConstrExpr;
 
@@ -59,11 +60,11 @@ class SLRExpr
 protected:
     double                               _constant;
     std::vector<double>                  _coeffs;
-    std::vector<std::vector<SLRVar<T>*>>  _vars;
+    std::vector<std::vector<std::shared_ptr<SLRVarRep<T>>>>  _vars;
     int                                  _varIndex;
 
 private:
-    SLRExpr(const SLRVar<T> &);
+    //SLRExpr(const SLRVar<T> &);
 
 public:
 

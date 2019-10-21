@@ -28,13 +28,14 @@ class SLRConstrExpr
 {
 private:
     char         _sign;
-    SLRExpr<T>   _expr;
-    double       _constr;
+    SLRExpr<T>   _exprLeft;
+    SLRExpr<T>   _exprRight;
 
 public:
     SLRConstrExpr() = delete;
     SLRConstrExpr(const SLRExpr<T> &, const SLRExpr<T> &, const char &);
     SLRConstrExpr(const SLRExpr<T> &, const double &, const char &);
+    SLRConstrExpr(const double &, const SLRExpr<T> &, const char &);
 
     friend class SLRModel<T>;
 
