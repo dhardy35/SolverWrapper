@@ -42,9 +42,7 @@ SLRExpr<T> operator*(const SLRExpr<T> &x, const SLRExpr<T> &y)
             {
                 result._coeffs.push_back(x._coeffs[i] * y._coeffs[j]);
                 result._vars.push_back(x._vars[i]);
-                result._vars[result._varIndex].insert(result._vars[result._varIndex].end(), y._vars[j].begin(),
-                                                      y._vars[j].end());
-
+                result._vars[result._varIndex].insert(result._vars[result._varIndex].end(), y._vars[j].begin(), y._vars[j].end());
                 result._varIndex++;
             }
         }
@@ -244,7 +242,7 @@ void    SLRExpr<T>::simplify()
         {
             int tmp = 0;
             for (tmp = 0; tmp < _vars[i].size() &&
-                    _vars[i][tmp] == _vars[_varIndex][tmp]; tmp++);
+                          _vars[i][tmp] == _vars[_varIndex][tmp]; tmp++);
             if (tmp == _vars[i].size())
             {
                 _coeffs[i] += _coeffs[_varIndex];

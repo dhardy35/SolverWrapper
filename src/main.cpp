@@ -10,10 +10,10 @@
 #error compile selecting one solver, i.e. include in compiler parameters: -DOSQP or -DGRB
 #endif
 #endif
-#define SIZE 2000
+#define SIZE 20
 
 int main() {
-    float m[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    /*float m[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     float A[3] = {1, 0.5, 0};
     float B[3] = {0, 1, 0};
@@ -40,18 +40,16 @@ int main() {
     model.addConstr(M[6] * A[1] + M[7] * B[1] + M[8] * C[1] == 0.);
     model.addConstr(M[6] * A[2] + M[7] * B[2] + M[8] * C[2] == 1.);
 
-    model.setObjective(M[0] + M[1] + M[2] + M[3] + M[4] + M[5] + M[6] + M[7] + M[8] + M[9], SLR_MINIMIZE);
     model.optimize();
 
     for (int i = 0; i < 9; i++) {
         m[i] = M[i].getSolution();
-        std::cout << m[i] << " ,";
+        std::cout << m[i] << " ";
     }
-    model.printResult();
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 
         // Create an environment
-    /*try {
+    try {
 
 
         // Create an empty model
@@ -63,21 +61,22 @@ int main() {
         {
                 vars.push_back(model.addVar(0.0, 10.0, 0.0, "x" + std::to_string(i)));
         }
-        SLRExpr<double> expr;
+        SLRExpr<double> expr = 10.f;
         for (int i = 1; i < SIZE; i++)
         {
                 expr += (vars[i] - vars[i - 1]) * (vars[i] - vars[i - 1]);
         }
         model.setObjective(expr, SLR_MINIMIZE);
-        model.addConstr(vars[0] == 10.0, "c0");
-        model.addConstr(vars[SIZE - 1] == 0.0, "c0");
+        model.addConstr(vars[0] >= 8.0, "c0");
+        model.addConstr(vars[SIZE - 1] <= 2.0, "c0");
         model.optimize();
-        model.printResult();
+        for (auto &var : vars)
+            std::cout << var.get() << std::endl;
     }
     catch (const SLRException &e)
     {
             std::cerr << e.getMessage() << std::endl;
-    }*/
+    }
 
 
         /*

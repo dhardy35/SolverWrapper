@@ -49,7 +49,7 @@ SLRVar<T>    SLRModel<T>::getVarByName(const std::string &name)
 template <typename T>
 bool        SLRModel<T>::hasSolution() const
 {
-    return (_solutionState >= 1);
+    return (_solutionState >= 0);
 }
 
 
@@ -76,8 +76,8 @@ GRBQuadExpr      SLRModel<T>::SLRExprToGRBQuadExpr(const SLRExpr<T> &expr)
     GRBQuadExpr finalExpr = 0.0;
     for (int i = 0; i < expr._varIndex; i++)
     {
-        if (i % (expr._varIndex / 100) == 0)
-            std::cout << (i * 100) / expr._varIndex << std::endl;
+        //if (i % (expr._varIndex / 100) == 0)
+          //  std::cout << (i * 100) / expr._varIndex << std::endl;
         if (expr._vars[i].size() == 2)
         {
             finalExpr += _vars[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] * _vars[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]))] * expr._coeffs[i];
@@ -143,7 +143,9 @@ void    SLRModel<T>::optimize()
     for (int i = 0;_solutionState > 0 && i < _vars.size(); i++)
     {
         _varsVector[i].set(_vars[i].get(GRB_DoubleAttr_X));
+        std::cout << _vars[i].get(GRB_DoubleAttr_X) << " ";
     }
+    std::cout << std::endl;
 }
 
 template <typename T>
@@ -211,7 +213,7 @@ void    SLRModel<T>::printResult()
 #elif OSQP
 
 template <typename T>
-SLRModel<T>::SLRModel() : _nbVar(0), _nbConstr(0), _solutionState(0)
+SLRModel<T>::SLRModel() : _nbVar(0), _nbConstr(0), _solutionState(0), _constant(0.f)
 {
     _quadricNb = 0;
 }
@@ -219,8 +221,11 @@ SLRModel<T>::SLRModel() : _nbVar(0), _nbConstr(0), _solutionState(0)
 template <typename T>
 SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const T &solution, const std::string &name)
 {
-    SLRVar<T>   variable(lowerBound, upperBound, solution, name);
+    std::string validName = name;
+    if (name == "")
+        validName = "myVar_" + std::to_string(_nbVar);
 
+    SLRVar<T> variable(lowerBound, upperBound, solution, validName);
     _varsVector.push_back(variable);
     _nbVar++;
 
@@ -233,10 +238,10 @@ void SLRModel<T>::updateVariableConstraints()
 
     for (auto const &var : _varsVector)
     {
-        std::vector<double> constrCoeff(_nbVar, 0);
+        std::vector<double> constrCoeff(_nbVar, 0.0);
         _lowerBound.push_back(var.getLowerBound());
         _upperBound.push_back(var.getUpperBound());
-        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var))] = 1;
+        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var))] = 1.f;
         _constrCoeffs.push_back(constrCoeff);
         _nbConstr++;
     }
@@ -245,72 +250,69 @@ void SLRModel<T>::updateVariableConstraints()
 template <typename T>
 void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
-    double   fullMatrix[_nbVar][_nbVar];
+    std::cout << "size = " << expr._varIndex << std::endl;
+    std::vector<std::vector<double>> fullMatrix(_nbVar, std::vector<double>(_nbVar, 0.0));
 
     updateVariableConstraints();
-    _linearCoeffs = (c_float *)malloc(sizeof(c_float) * _nbVar);
 
-    if (fullMatrix == NULL || _linearCoeffs == NULL)
-        throw SLRException(031401, "SLRModel::setObjective", "memory alloc failed");
-
-    memset(fullMatrix, 0, sizeof (double) * (_nbVar * _nbVar));
-    memset(_linearCoeffs, 0, sizeof (c_float) * (_nbVar));
+    _objLinearCoeffs = std::vector<c_float>(_nbVar, 0.0);
+    long firstVarIndex;
+    long secondVarIndex;
     for (int i = 0; i < expr._vars.size(); i++)
     {
+        firstVarIndex = std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]));
         if (expr._vars[i].size() == 2)
         {
-            fullMatrix[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))][std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]))] = expr._coeffs[i];
+            secondVarIndex = std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]));
+            fullMatrix[std::min(firstVarIndex, secondVarIndex)][std::max(firstVarIndex, secondVarIndex)] += expr._coeffs[i];
             _quadricNb++;
         }
-        else
+        else if (expr._vars[i].size() == 1)
         {
-            _linearCoeffs[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] = expr._coeffs[i];
+            _objLinearCoeffs[firstVarIndex] += expr._coeffs[i];
         }
     }
 
-    _quadricCoeffs = (c_float *)malloc(sizeof(c_float) * _quadricNb);
-    _coeffsRaws = (c_int *)malloc(sizeof(c_int) * _quadricNb);
-    _coeffsColumns = (c_int *)malloc(sizeof(c_int) * (_nbVar + 1));
+    _objQuadricCoeffs = std::vector<c_float>(_quadricNb, 0.0);
+    _objCoeffsRaws = std::vector<c_int>(_quadricNb, 0);
+    _objCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
-    if (_quadricCoeffs == NULL || _coeffsRaws == NULL || _coeffsColumns == NULL)
-        throw SLRException(031401, "SLRModel::setObjective", "memory alloc failed");
-
-    memset(_coeffsColumns, 0, sizeof (c_int) * _quadricNb);
     _quadricNb = 0;
     for (int i = 0; i < _nbVar; i++)
     {
         for (int j = 0; j < _nbVar; j++)
         {
-            if (fullMatrix[j][i] != 0)
+            if (fullMatrix[j][i] != 0.0)
             {
                 if (i != j)
                     fullMatrix[j][i] /= 2.f;
-                _quadricCoeffs[_quadricNb] = fullMatrix[j][i];
-                _coeffsRaws[_quadricNb] = j;
-                _coeffsColumns[i + 1]++;
+                _objQuadricCoeffs[_quadricNb] = fullMatrix[j][i];
+                _objCoeffsRaws[_quadricNb] = j;
+                _objCoeffsColumns[i + 1]++;
                 _quadricNb++;
             }
         }
     }
-    _coeffsColumns[0] = 0;
+    _objCoeffsColumns[0] = 0;
     for (int i = 1; i < _nbVar + 1; i++)
     {
-        _coeffsColumns[i] += _coeffsColumns[i - 1];
+        _objCoeffsColumns[i] += _objCoeffsColumns[i - 1];
     }
+    _constant = expr._constant;
 }
 
 template <typename T>
 void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
 {
     // only linear constraints
-    std::vector<double> constrCoeff(_nbVar, 0);
+    std::vector<double> constrCoeff(_nbVar, 0.0);
     auto expr = constrExpr._exprLeft - constrExpr._exprRight;
-    float constant = -expr._constant;
+    double constant = -expr._constant;
     for (int i = 0; i < expr._vars.size(); i++)
     {
         if (expr._vars[i].size() > 1)
             throw SLRException(031502, "SLRModel::addConstr", "only linear constraints are allowed");
-        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] = expr._coeffs[i];
+        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] += expr._coeffs[i];
     }
     _constrCoeffs.push_back(constrCoeff);
     if (constrExpr._sign == SLR_EQUAL)
@@ -320,7 +322,7 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
     }
     else if (constrExpr._sign == SLR_LESS_EQUAL)
     {
-        _lowerBound.push_back(std::numeric_limits<double>::min());
+        _lowerBound.push_back(std::numeric_limits<double>::lowest());
         _upperBound.push_back(constant);
     }
     else if (constrExpr._sign == SLR_GREATER_EQUAL)
@@ -376,7 +378,7 @@ void    SLRModel<T>::printOSQPVariables(OSQPData &data)
 template <typename T>
 void    SLRModel<T>::fillData()
 {
-    c_int nonZeroCoeffNb = 0;
+    unsigned int nonZeroCoeffNb = 0;
     for (int i = 0; i < _constrCoeffs.size(); i++)
     {
         for (int j = 0; j < _constrCoeffs[i].size(); j++)
@@ -385,73 +387,92 @@ void    SLRModel<T>::fillData()
                 nonZeroCoeffNb++;
         }
     }
-    c_float   *nonZeroCoeffs = (c_float*)malloc(sizeof(c_float) * nonZeroCoeffNb);
-    c_int   *coeffsRaws = (c_int*)malloc(sizeof(c_int) * nonZeroCoeffNb);
-    c_int   *coeffsColumns = (c_int*)malloc(sizeof(c_int) * (_nbVar + 1));
-
-    if (nonZeroCoeffs == NULL || coeffsRaws == NULL || coeffsColumns == NULL)
-        throw SLRException(031701, "SLRModel::fillData", "memory alloc failed");
-
-    memset(coeffsColumns, 0, sizeof(c_int) * (_nbVar + 1));
+    _constrLinearCoeffs = std::vector<c_float>(nonZeroCoeffNb, 0.0);
+    _constrCoeffsRaws = std::vector<c_int>(nonZeroCoeffNb, 0);
+    _constrCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
     nonZeroCoeffNb = 0;
     for (int i = 0; i < _constrCoeffs[0].size(); i++)
     {
         for (int j = 0; j < _constrCoeffs.size(); j++)
         {
-            if (_constrCoeffs[j][i] != 0)
+            if (_constrCoeffs[j][i] != 0.0)
             {
-                nonZeroCoeffs[nonZeroCoeffNb] = _constrCoeffs[j][i];
-                coeffsRaws[nonZeroCoeffNb] = j;
-                coeffsColumns[i + 1]++;
+                _constrLinearCoeffs[nonZeroCoeffNb] = _constrCoeffs[j][i];
+                _constrCoeffsRaws[nonZeroCoeffNb] = j;
+                _constrCoeffsColumns[i + 1]++;
                 nonZeroCoeffNb++;
             }
         }
     }
     for (int i = 1; i < _nbVar + 1; i++)
     {
-        coeffsColumns[i] += coeffsColumns[i - 1];
+        _constrCoeffsColumns[i] += _constrCoeffsColumns[i - 1];
     }
 
-    c_float *lowerBound = (c_float *)malloc(sizeof(c_float) * _lowerBound.size());
-    c_float *upperBound = (c_float *)malloc(sizeof(c_float) * _upperBound.size());
 
-    if (lowerBound == NULL || upperBound == NULL)
-        throw SLRException(031701, "SLRModel::fillData", "memory alloc failed");
-
-    std::copy(_lowerBound.begin(), _lowerBound.end(), lowerBound);
-    std::copy(_upperBound.begin(), _upperBound.end(), upperBound);
-
-    _data.m = _constrCoeffs.size();
+    _data.m = _nbConstr;
     _data.n = _nbVar;
-    _data.A = csc_matrix(_data.m, _nbVar, nonZeroCoeffNb, nonZeroCoeffs, coeffsRaws, coeffsColumns);
-    _data.l = lowerBound;
-    _data.u = upperBound;
-    _data.P = csc_matrix(_nbVar, _nbVar, _quadricNb, _quadricCoeffs, _coeffsRaws, _coeffsColumns);
-    _data.q = _linearCoeffs;
+    _data.A = csc_matrix(_data.m, _nbVar, nonZeroCoeffNb, _constrLinearCoeffs.data(), _constrCoeffsRaws.data(), _constrCoeffsColumns.data());
+    _data.l = _lowerBound.data();
+    _data.u = _upperBound.data();
+    _data.P = csc_matrix(_nbVar, _nbVar, _quadricNb, _objQuadricCoeffs.data(), _objCoeffsRaws.data(), _objCoeffsColumns.data());
+    _data.q = _objLinearCoeffs.data();
 }
 
 template <typename T>
 void    SLRModel<T>::optimize()
 {
+    if (_quadricNb == 0)
+    {
+        SLRExpr<T> expr = 0.0;
+        for (const auto &var : _varsVector)
+            expr += var;
+        setObjective(expr, SLR_MINIMIZE);
+    }
     fillData();
-
     osqp_set_default_settings(&_settings);
-
+    //_settings.scaling = MAX_SCALING;
+    //_settings.max_iter = 4000;
+    //_settings.verbose = 0;
+    //_settings.warm_start = 0;
+    //_settings.alpha = 1.6;
     if (osqp_setup(&_work, &_data, &_settings) != 0)
         throw SLRException(31804, "SLRModel::optimize", "osqp_setup failed");
 
     osqp_solve(_work);
 
-    _solutionState = _work->info->status_polish;
+    _solutionState = (int)_work->info->status_val;
+    std::cout << "------- " << _work->info->status << " ------------" << std::endl;
+    for (int i = 0; (_solutionState == 1 || _solutionState == 2 || _solutionState == -2) && i < _data.n; i++)
+    {
+        _varsVector[i].set(_work->solution[0].x[i]);
+        std::cout << _work->solution[0].x[i] << " ";
+    }
+    std::cout << std::endl;
+    _nbConstr = 0;
+    _lowerBound.clear();
+    _upperBound.clear();
+    _constrCoeffs.clear();
+    _objQuadricCoeffs.clear();
+    _objLinearCoeffs.clear();
+    _objCoeffsRaws.clear();
+    _objCoeffsColumns.clear();
+    _constrLinearCoeffs.clear();
+    _constrCoeffsRaws.clear();
+    _constrCoeffsColumns.clear();
+    _quadricNb = 0;
+    _data = OSQPData();
+    _settings = OSQPSettings();
+    _work = new OSQPWorkspace();
 }
 
 template <typename T>
 void    SLRModel<T>::printResult()
 {
-    for (int i = 0; i < _data.n; i++)
+    /*for (int i = 0; i < _data.n; i++)
         std::cout << _work->solution[0].x[i] << " ";
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 }
 
 template <typename T>
@@ -465,6 +486,14 @@ template <typename T>
 void        SLRModel<T>::update()
 {
     // todo
+}
+
+template <typename T>
+SLRModel<T>::~SLRModel()
+{
+    /*free(_work);
+    free(_data.A);
+    free(_data.P);*/
 }
 
 #endif

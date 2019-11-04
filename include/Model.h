@@ -34,7 +34,7 @@ class SLRModel
 {
 public:
     std::vector<SLRVar<T>>  _varsVector;
-    int                     _nbVar;
+    unsigned int                     _nbVar;
     int                     _solutionState;
 
 
@@ -47,22 +47,27 @@ public:
     GRBQuadExpr                 SLRExprToGRBQuadExpr(const SLRExpr<T> &expr);
 
 #elif OSQP
+    c_float                             _constant;
     int                                 _nbConstr;
-    std::vector<double>                 _lowerBound;
-    std::vector<double>                 _upperBound;
+    std::vector<c_float>                _lowerBound;
+    std::vector<c_float>                 _upperBound;
     std::vector<std::vector<double>>    _constrCoeffs;
-    c_float         *_quadricCoeffs;
-    c_float         *_linearCoeffs;
-    c_int           *_coeffsRaws;
-    c_int           *_coeffsColumns;
+    std::vector<c_float>         _objQuadricCoeffs;
+    std::vector<c_float>         _objLinearCoeffs;
+    std::vector<c_int>           _objCoeffsRaws;
+    std::vector<c_int>           _objCoeffsColumns;
+    std::vector<c_float>  _constrLinearCoeffs;
+    std::vector<c_int>  _constrCoeffsRaws;
+    std::vector<c_int>  _constrCoeffsColumns;
     OSQPWorkspace   *_work;
     OSQPSettings    _settings;
     OSQPData        _data;
-    int             _quadricNb;
+    unsigned int             _quadricNb;
 
     void            fillData();
     void            printOSQPVariables(OSQPData &data);
     void            updateVariableConstraints();
+    ~SLRModel();
 #endif
 
 
