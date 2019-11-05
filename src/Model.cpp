@@ -250,7 +250,7 @@ void SLRModel<T>::updateVariableConstraints()
 template <typename T>
 void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
-    std::cout << "size = " << expr._varIndex << std::endl;
+    //std::cout << "size = " << expr._varIndex << std::endl;
     std::vector<std::vector<double>> fullMatrix(_nbVar, std::vector<double>(_nbVar, 0.0));
 
     updateVariableConstraints();
@@ -423,6 +423,8 @@ void    SLRModel<T>::fillData()
 template <typename T>
 void    SLRModel<T>::optimize()
 {
+
+
     if (_quadricNb == 0)
     {
         SLRExpr<T> expr = 0.0;
@@ -433,23 +435,39 @@ void    SLRModel<T>::optimize()
     fillData();
     osqp_set_default_settings(&_settings);
     //_settings.scaling = MAX_SCALING;
-    //_settings.max_iter = 4000;
-    //_settings.verbose = 0;
-    //_settings.warm_start = 0;
-    //_settings.alpha = 1.6;
+    //_settings.max_iter = 10000;
+    _settings.verbose = 0;
+    _settings.warm_start = 1;
+    //_settings.alpha = 0.1;
     if (osqp_setup(&_work, &_data, &_settings) != 0)
         throw SLRException(31804, "SLRModel::optimize", "osqp_setup failed");
 
+    _x.clear();
+    for (const auto & v : _varsVector)
+    {
+        _x.push_back(v.get());
+    }
+    if (_y.size() != 0)
+    {
+        osqp_warm_start(_work, _x.data(), _y.data());
+    }
+    else
+    {
+        _y = std::vector<c_float>(_nbVar, 0.0);
+        osqp_warm_start_x(_work, _x.data());
+    }
     osqp_solve(_work);
 
     _solutionState = (int)_work->info->status_val;
-    std::cout << "------- " << _work->info->status << " ------------" << std::endl;
+    //std::cout << "------- " << _work->info->status << " ------------" << std::endl;
     for (int i = 0; (_solutionState == 1 || _solutionState == 2 || _solutionState == -2) && i < _data.n; i++)
     {
         _varsVector[i].set(_work->solution[0].x[i]);
-        std::cout << _work->solution[0].x[i] << " ";
+        _x[i] = _work->solution[0].x[i];
+        _y[i] = _work->solution[0].y[i];
+        //std::cout << _work->solution[0].x[i] << " ";
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
     _nbConstr = 0;
     _lowerBound.clear();
     _upperBound.clear();

@@ -59,6 +59,8 @@ public:
     std::vector<c_float>  _constrLinearCoeffs;
     std::vector<c_int>  _constrCoeffsRaws;
     std::vector<c_int>  _constrCoeffsColumns;
+    std::vector<c_float> _x;
+    std::vector<c_float> _y;
     OSQPWorkspace   *_work;
     OSQPSettings    _settings;
     OSQPData        _data;

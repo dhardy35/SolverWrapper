@@ -12,7 +12,8 @@
 #endif
 #define SIZE 20
 
-int main() {
+int main()
+{
     /*float m[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     float A[3] = {1, 0.5, 0};
