@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.1)
-project(Solveur)
+project(SolverWrapper)
 
-add_executable(${PROJECT_NAME} src/main.cpp include/Model.h include/Variable.h include/Expression.h include/ConstraintExpression.h include/SLRException.h src/SLRException.cpp)
+add_library(${PROJECT_NAME} src/main.cpp include/Model.h include/Variable.h include/Expression.h include/ConstraintExpression.h include/SLRException.h src/SLRException.cpp)
 
 #SLR
 include_directories(include/)
@@ -21,4 +21,3 @@ target_link_libraries(${PROJECT_NAME} -L/$ENV{GUROBI_HOME}/lib -lgurobi_c++)
 target_compile_options (${PROJECT_NAME} PRIVATE -DOSQP)
 
 set(CMAKE_CXX_STANDARD 17 REQUIRED)
-
