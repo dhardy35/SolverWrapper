@@ -40,7 +40,7 @@ public:
 
 #ifdef GRB
     std::shared_ptr<GRBModel>   _model;
-    GRBEnv                      _env;
+    static inline GRBEnv        _env = true;
     std::vector<GRBVar>         _vars;
 
     GRBLinExpr                  SLRExprToGRBLineExpr(const SLRExpr<T> &expr);

@@ -57,7 +57,7 @@ bool        SLRModel<T>::hasSolution() const
 
 // set always env as true, which means env is empty
 template <typename T>
-SLRModel<T>::SLRModel() : _env(true), _solutionState(0), _nbVar(0)
+SLRModel<T>::SLRModel() : _solutionState(0), _nbVar(0)
 {
     _env.start();
     _model = std::make_shared<GRBModel>(_env);
