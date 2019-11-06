@@ -143,9 +143,7 @@ void    SLRModel<T>::optimize()
     for (int i = 0;_solutionState > 0 && i < _vars.size(); i++)
     {
         _varsVector[i].set(_vars[i].get(GRB_DoubleAttr_X));
-        std::cout << _vars[i].get(GRB_DoubleAttr_X) << " ";
     }
-    std::cout << std::endl;
 }
 
 template <typename T>
