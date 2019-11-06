@@ -88,7 +88,6 @@ public:
 
 #ifdef GRB
     SLRModel();
-    SLRModel(const GRBEnv &);
     void                    printResult();
     void        set(GRB_IntParam flag, int todo);
     void        set(GRB_DoubleParam flag, float todo);
