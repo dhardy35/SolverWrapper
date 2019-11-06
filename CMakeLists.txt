@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.1)
 project(SolverWrapper)
 
-add_library(${PROJECT_NAME} src/main.cpp include/Model.h include/Variable.h include/Expression.h include/ConstraintExpression.h include/SLRException.h src/SLRException.cpp)
+add_library(${PROJECT_NAME} include/Model.h include/Variable.h include/Expression.h include/ConstraintExpression.h include/SLRException.h src/SLRException.cpp)
 
 #SLR
 include_directories(include/)
