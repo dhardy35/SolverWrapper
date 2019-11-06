@@ -428,7 +428,7 @@ void    SLRModel<T>::optimize()
     //_settings.scaling = MAX_SCALING;
     //_settings.max_iter = 10000;
     _settings.verbose = 0;
-    _settings.linsys_solver = MKL_PARDISO_SOLVER;
+    //_settings.linsys_solver = MKL_PARDISO_SOLVER;
     _settings.warm_start = 1;
     //_settings.alpha = 0.1;
     if (osqp_setup(&_work, &_data, &_settings) != 0)
