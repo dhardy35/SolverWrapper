@@ -16,7 +16,7 @@ target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})
 #GUROBI
 INCLUDE_DIRECTORIES($ENV{GUROBI_HOME}/include)
 link_directories($ENV{GUROBI_HOME}/lib)
-target_link_libraries(${PROJECT_NAME} -L/$ENV{GUROBI_HOME}/lib -lgurobi_c++ -lgurobi81)
+target_link_libraries(${PROJECT_NAME} -L/$ENV{GUROBI_HOME}/lib -lgurobi_c++)
 
 target_compile_options (${PROJECT_NAME} PRIVATE -DOSQP)
 
