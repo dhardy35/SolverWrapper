@@ -64,7 +64,7 @@ SLRModel<T>::SLRModel() : _solutionState(0), _nbVar(0)
 }
 
 template <typename T>
-SLRModel<T>::SLRModel(const GRBEnv &env) : _env(env), _solutionState(0), _nbVar(0)
+SLRModel<T>::SLRModel(const GRBEnv &env) : _solutionState(0), _nbVar(0)
 {
     _env.start();
     _model = std::make_shared<GRBModel>(_env);
