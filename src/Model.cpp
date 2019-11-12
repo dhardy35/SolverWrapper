@@ -232,7 +232,7 @@ void SLRModel<T>::updateVariableConstraints()
         std::vector<double> constrCoeff(_nbVar, 0.0);
         _lowerBound.push_back(var.getLowerBound());
         _upperBound.push_back(var.getUpperBound());
-        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var))] = 1.f;
+        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var))] = 1.0;
         _constrCoeffs.push_back(constrCoeff);
         _nbConstr++;
     }
@@ -273,10 +273,10 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
     {
         for (int j = 0; j < _nbVar; j++)
         {
-            if (fullMatrix[j][i] != 0.0)
+            if (abs(fullMatrix[j][i]) > 1e-05)
             {
                 if (i != j)
-                    fullMatrix[j][i] /= 2.f;
+                    fullMatrix[j][i] /= 2.0;
                 _objQuadricCoeffs[_quadricNb] = fullMatrix[j][i];
                 _objCoeffsRaws[_quadricNb] = j;
                 _objCoeffsColumns[i + 1]++;
@@ -428,7 +428,7 @@ void    SLRModel<T>::optimize()
     //_settings.scaling = MAX_SCALING;
     //_settings.max_iter = 10000;
     _settings.verbose = 0;
-    //_settings.linsys_solver = MKL_PARDISO_SOLVER;
+    _settings.linsys_solver = MKL_PARDISO_SOLVER;
     _settings.warm_start = 1;
     //_settings.alpha = 0.1;
     if (osqp_setup(&_work, &_data, &_settings) != 0)
