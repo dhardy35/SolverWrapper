@@ -425,8 +425,8 @@ void    SLRModel<T>::optimize()
     //_settings.max_iter = 10000;
     _settings.verbose = 1;
     //_settings.linsys_solver = MKL_PARDISO_SOLVER;
-    //_settings.warm_start = 1;
-    _settings.alpha = 0.000001;
+    _settings.warm_start = 1;
+    //_settings.alpha = 1;
 
     if (osqp_setup(&_work, &_data, &_settings) != 0)
         throw SLRException(31804, "SLRModel::optimize", "osqp_setup failed");
