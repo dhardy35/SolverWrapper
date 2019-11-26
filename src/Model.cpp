@@ -38,11 +38,11 @@ double      SLRModel<T>::getObjectiveError(const SLRExpr<T> &expr) const
     {
         if (expr._vars[i].size() == 2)
         {
-            error += expr._vars[i][0].get() * expr._vars[i][1].get() * expr._coeffs[i];
+            error += expr._vars[i][0]->get() * expr._vars[i][1]->get() * expr._coeffs[i];
         }
         else if (expr._vars[i].size() == 1)
         {
-            error += expr._vars[i][0].get() * expr._coeffs[i];
+            error += expr._vars[i][0]->get() * expr._coeffs[i];
         }
     }
     error += expr._constant;
@@ -441,7 +441,7 @@ void    SLRModel<T>::optimize()
     //_settings.scaling = 0;
     //_settings.polish = 1;
     //_settings.max_iter = 10000;
-    _settings.verbose = 0;
+    _settings.verbose = 1;
     //_settings.linsys_solver = MKL_PARDISO_SOLVER;
     _settings.warm_start = 1;
     //_settings.alpha = 1;
