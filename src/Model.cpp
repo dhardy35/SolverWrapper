@@ -417,13 +417,12 @@ void    SLRModel<T>::optimize()
     }
 
     fillData();
-    printOSQPVariables(_data);
     osqp_set_default_settings(&_settings);
 
     //_settings.scaling = 0;
     //_settings.polish = 1;
     //_settings.max_iter = 10000;
-    _settings.verbose = 1;
+    _settings.verbose = 0;
     //_settings.linsys_solver = MKL_PARDISO_SOLVER;
     _settings.warm_start = 1;
     //_settings.alpha = 1;
