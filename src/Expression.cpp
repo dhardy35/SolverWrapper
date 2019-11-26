@@ -261,3 +261,24 @@ void    SLRExpr<T>::simplify()
     }*/
 }
 
+template <typename T>
+void    SLRExpr<T>::printExpression() const
+{
+    std::cout << "Expression : ";
+    for (int i = 0; i < _varIndex; i++)
+    {
+        if (_coeffs[i] != 1)
+            std::cout << _coeffs[i];
+        for (int j = 0; j < _vars[i].size(); j++)
+        {
+            std::cout << _vars[i][j]->getName();
+        }
+        std::cout << " ";
+        if (i != _varIndex - 1)
+            std::cout << "+";
+        std::cout << " ";
+    }
+    std::cout << "+ " << _constant;
+    std::cout << std::endl;
+}
+

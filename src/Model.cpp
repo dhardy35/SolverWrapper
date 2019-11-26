@@ -6,28 +6,6 @@
 #include <Expression.h>
 #include "Model.h"
 
-
-template <typename T>
-void SLRModel<T>::printExpression(const SLRExpr<T> &expr) const
-{
-    std::cout << "Expression : ";
-    for (int i = 0; i < expr._varIndex; i++)
-    {
-        if (expr._coeffs[i] != 1)
-            std::cout << expr._coeffs[i];
-        for (int j = 0; j < expr._vars[i].size(); j++)
-        {
-            std::cout << expr._vars[i][j]->getName();
-        }
-        std::cout << " ";
-        if (i != expr._varIndex - 1)
-            std::cout << "+";
-        std::cout << " ";
-    }
-    std::cout << "+ " << expr._constant;
-    std::cout << std::endl;
-}
-
 template <typename T>
 void SLRModel<T>::printExpression(const SLRConstrExpr<T> &constrExpr) const
 {
@@ -69,8 +47,6 @@ GRBQuadExpr      SLRModel<T>::SLRExprToGRBQuadExpr(const SLRExpr<T> &expr)
     GRBQuadExpr finalExpr = 0.0;
     for (int i = 0; i < expr._varIndex; i++)
     {
-        //if (i % (expr._varIndex / 100) == 0)
-          //  std::cout << (i * 100) / expr._varIndex << std::endl;
         if (expr._vars[i].size() == 2)
         {
             finalExpr += _vars[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] * _vars[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]))] * expr._coeffs[i];

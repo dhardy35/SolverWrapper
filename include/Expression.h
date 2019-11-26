@@ -92,6 +92,7 @@ public:
     friend SLRExpr<T> operator-<>(const SLRExpr<T> &);
 
     void    simplify();
+    void    printExpression() const;
 
     void operator+=(const SLRExpr<T> &);
     void operator-=(const SLRExpr<T> &);

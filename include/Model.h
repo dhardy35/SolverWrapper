@@ -74,7 +74,6 @@ public:
 
 
 public:
-    void        printExpression(const SLRExpr<T> &) const;
     void        printExpression(const SLRConstrExpr<T> &) const;
     void        setObjective(const SLRExpr<T> &, int goal = 0);
     void        addConstr(const SLRConstrExpr<T> &, const std::string &name = "");
