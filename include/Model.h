@@ -83,6 +83,7 @@ public:
     bool        hasSolution() const;
     void        printDebug(const bool &);
     void        update();
+    double      getObjectiveError(const SLRExpr<T> &) const;
 
 
 #ifdef GRB

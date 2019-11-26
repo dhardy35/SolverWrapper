@@ -30,6 +30,25 @@ bool        SLRModel<T>::hasSolution() const
     return (_solutionState >= 0);
 }
 
+template <typename T>
+double      SLRModel<T>::getObjectiveError(const SLRExpr<T> &expr) const
+{
+    double error = 0.0;
+    for (int i = 0; i < expr._varIndex; ++i)
+    {
+        if (expr._vars[i].size() == 2)
+        {
+            error += expr._vars[i][0].get() * expr._vars[i][1].get() * expr._coeffs[i];
+        }
+        else if (expr._vars[i].size() == 1)
+        {
+            error += expr._vars[i][0].get() * expr._coeffs[i];
+        }
+    }
+    error += expr._constant;
+    return error;
+}
+
 
 #ifdef GRB
 
