@@ -47,20 +47,20 @@ public:
     GRBQuadExpr                 SLRExprToGRBQuadExpr(const SLRExpr<T> &expr);
 
 #elif OSQP
-    c_float                             _constant;
+    bool                                _isObjectivSet;
+    double                             _constant;
     int                                 _nbConstr;
-    std::vector<c_float>                _lowerBound;
-    std::vector<c_float>                 _upperBound;
+    std::vector<double>                _lowerBound;
+    std::vector<double>                 _upperBound;
     std::vector<std::vector<double>>    _constrCoeffs;
-    std::vector<c_float>         _objQuadricCoeffs;
-    std::vector<c_float>         _objLinearCoeffs;
+    std::vector<double>         _objQuadricCoeffs;
+    std::vector<double>         _objLinearCoeffs;
     std::vector<c_int>           _objCoeffsRaws;
     std::vector<c_int>           _objCoeffsColumns;
-    std::vector<c_float>  _constrLinearCoeffs;
+    std::vector<double>  _constrLinearCoeffs;
     std::vector<c_int>  _constrCoeffsRaws;
     std::vector<c_int>  _constrCoeffsColumns;
-    std::vector<c_float> _x;
-    std::vector<c_float> _y;
+    std::vector<double> _x;
     OSQPWorkspace   *_work;
     OSQPSettings    _settings;
     OSQPData        _data;

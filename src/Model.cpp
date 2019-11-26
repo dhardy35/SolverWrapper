@@ -207,6 +207,7 @@ template <typename T>
 SLRModel<T>::SLRModel() : _nbVar(0), _nbConstr(0), _solutionState(0), _constant(0.f)
 {
     _quadricNb = 0;
+    _isObjectivSet = false;
 }
 
 template <typename T>
@@ -241,12 +242,12 @@ void SLRModel<T>::updateVariableConstraints()
 template <typename T>
 void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
-    //std::cout << "size = " << expr._varIndex << std::endl;
+    _isObjectivSet = true;
     std::vector<std::vector<double>> fullMatrix(_nbVar, std::vector<double>(_nbVar, 0.0));
 
     updateVariableConstraints();
 
-    _objLinearCoeffs = std::vector<c_float>(_nbVar, 0.0);
+    _objLinearCoeffs = std::vector<double>(_nbVar, 0.0);
     long firstVarIndex;
     long secondVarIndex;
     for (int i = 0; i < expr._vars.size(); i++)
@@ -264,7 +265,19 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
         }
     }
 
-    _objQuadricCoeffs = std::vector<c_float>(_quadricNb, 0.0);
+    _quadricNb = 0;
+    for (int i = 0; i < _nbVar; i++)
+    {
+        for (int j = 0; j < _nbVar; j++)
+        {
+            if (fullMatrix[j][i] != 0.0)
+            {
+                _quadricNb++;
+            }
+       }
+    }
+    std::cout << "qua = " << _quadricNb << std::endl;
+    _objQuadricCoeffs = std::vector<double>(_quadricNb, 0.0);
     _objCoeffsRaws = std::vector<c_int>(_quadricNb, 0);
     _objCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
@@ -273,10 +286,10 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
     {
         for (int j = 0; j < _nbVar; j++)
         {
-            if (abs(fullMatrix[j][i]) > 1e-05)
+            if (fullMatrix[j][i] != 0.0)
             {
-                if (i != j)
-                    fullMatrix[j][i] /= 2.0;
+                if (j == i)
+                    fullMatrix[j][i] *= 2.0;
                 _objQuadricCoeffs[_quadricNb] = fullMatrix[j][i];
                 _objCoeffsRaws[_quadricNb] = j;
                 _objCoeffsColumns[i + 1]++;
@@ -346,8 +359,11 @@ void    SLRModel<T>::printOSQPVariables(OSQPData &data)
     std::cout << std::endl << "u = ";
     for (int i = 0; i < data.m; i++)
         std::cout << data.u[i] << " ";
-    std::cout << std::endl;
 
+    std::cout << std::endl;
+    std::cout << "A.NZ = " << data.A->nz << std::endl;
+    std::cout << "A.N = " << data.A->n << std::endl;
+    std::cout << "A.M = " << data.A->m << std::endl;
     std::cout <<  data.P->nzmax<< std::endl << "x = ";
 
     for (int i = 0; i < data.P->nzmax; i++)
@@ -361,7 +377,10 @@ void    SLRModel<T>::printOSQPVariables(OSQPData &data)
     std::cout << std::endl << "q = ";
     for (int i = 0; i < data.n; i++)
         std::cout << data.q[i] << " ";
-    std::cout << std::endl;
+       std::cout << std::endl;
+    std::cout << "P.NZ = " << data.P->nz << std::endl;
+    std::cout << "P.N = " << data.P->n << std::endl;
+    std::cout << "P.M = " << data.P->m << std::endl;
     std::cout << "End ----------" << std::endl;
 
 }
@@ -374,11 +393,11 @@ void    SLRModel<T>::fillData()
     {
         for (int j = 0; j < _constrCoeffs[i].size(); j++)
         {
-            if (_constrCoeffs[i][j] != 0)
+            if (_constrCoeffs[i][j] != 0.0)
                 nonZeroCoeffNb++;
         }
     }
-    _constrLinearCoeffs = std::vector<c_float>(nonZeroCoeffNb, 0.0);
+    _constrLinearCoeffs = std::vector<double>(nonZeroCoeffNb, 0.0);
     _constrCoeffsRaws = std::vector<c_int>(nonZeroCoeffNb, 0);
     _constrCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
@@ -401,10 +420,9 @@ void    SLRModel<T>::fillData()
         _constrCoeffsColumns[i] += _constrCoeffsColumns[i - 1];
     }
 
-
     _data.m = _nbConstr;
     _data.n = _nbVar;
-    _data.A = csc_matrix(_data.m, _nbVar, nonZeroCoeffNb, _constrLinearCoeffs.data(), _constrCoeffsRaws.data(), _constrCoeffsColumns.data());
+    _data.A = csc_matrix(_nbConstr, _nbVar, nonZeroCoeffNb, _constrLinearCoeffs.data(), _constrCoeffsRaws.data(), _constrCoeffsColumns.data());
     _data.l = _lowerBound.data();
     _data.u = _upperBound.data();
     _data.P = csc_matrix(_nbVar, _nbVar, _quadricNb, _objQuadricCoeffs.data(), _objCoeffsRaws.data(), _objCoeffsColumns.data());
@@ -414,23 +432,26 @@ void    SLRModel<T>::fillData()
 template <typename T>
 void    SLRModel<T>::optimize()
 {
-
-
-    if (_quadricNb == 0)
+    if (_isObjectivSet == false)
     {
         SLRExpr<T> expr = 0.0;
         for (const auto &var : _varsVector)
             expr += var;
         setObjective(expr, SLR_MINIMIZE);
     }
+
     fillData();
+    printOSQPVariables(_data);
     osqp_set_default_settings(&_settings);
-    //_settings.scaling = MAX_SCALING;
+
+    //_settings.scaling = 0;
+    //_settings.polish = 1;
     //_settings.max_iter = 10000;
-    _settings.verbose = 0;
-    _settings.linsys_solver = MKL_PARDISO_SOLVER;
-    _settings.warm_start = 1;
-    //_settings.alpha = 0.1;
+    _settings.verbose = 1;
+    //_settings.linsys_solver = MKL_PARDISO_SOLVER;
+    //_settings.warm_start = 1;
+    _settings.alpha = 0.000001;
+
     if (osqp_setup(&_work, &_data, &_settings) != 0)
         throw SLRException(31804, "SLRModel::optimize", "osqp_setup failed");
 
@@ -439,28 +460,17 @@ void    SLRModel<T>::optimize()
     {
         _x.push_back(v.get());
     }
-    if (_y.size() != 0)
-    {
-        osqp_warm_start(_work, _x.data(), _y.data());
-    }
-    else
-    {
-        _y = std::vector<c_float>(_nbVar, 0.0);
-        osqp_warm_start_x(_work, _x.data());
-    }
+    osqp_warm_start_x(_work, _x.data());
     osqp_solve(_work);
 
     _solutionState = (int)_work->info->status_val;
-    //std::cout << "------- " << _work->info->status << " ------------" << std::endl;
+    std::cout << "result = " << _work->info->obj_val << std::endl;
+    std::cout << "------- " << _work->info->status << " ------------" << std::endl;
+
     for (int i = 0; (_solutionState == 1 || _solutionState == 2 || _solutionState == -2) && i < _data.n; i++)
     {
         _varsVector[i].set(_work->solution[0].x[i]);
-        _x[i] = _work->solution[0].x[i];
-        _y[i] = _work->solution[0].y[i];
-        //std::cout << _work->solution[0].x[i] << " ";
     }
-    //std::cout << std::endl;
-    _nbConstr = 0;
     _lowerBound.clear();
     _upperBound.clear();
     _constrCoeffs.clear();
@@ -472,6 +482,7 @@ void    SLRModel<T>::optimize()
     _constrCoeffsRaws.clear();
     _constrCoeffsColumns.clear();
     _quadricNb = 0;
+    _nbConstr = 0;
     _data = OSQPData();
     _settings = OSQPSettings();
     _work = new OSQPWorkspace();

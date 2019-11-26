@@ -10,7 +10,7 @@
 #error compile selecting one solver, i.e. include in compiler parameters: -DOSQP or -DGRB
 #endif
 #endif
-#define SIZE 20
+#define SIZE 2
 
 int main()
 {
@@ -57,22 +57,15 @@ int main()
         SLRModel<double> model;
 
         // Create variables
-        std::vector<SLRVar<double>> vars;
-        for (int i = 0; i < SIZE; i++)
-        {
-                vars.push_back(model.addVar(0.0, 10.0, 0.0, "x" + std::to_string(i)));
-        }
-        SLRExpr<double> expr = 10.f;
-        for (int i = 1; i < SIZE; i++)
-        {
-                expr += (vars[i] - vars[i - 1]) * (vars[i] - vars[i - 1]);
-        }
-        model.setObjective(expr, SLR_MINIMIZE);
-        model.addConstr(vars[0] >= 8.0, "c0");
-        model.addConstr(vars[SIZE - 1] <= 2.0, "c0");
+        SLRVar<double> x = model.addVar(-10.0, 10.0, 0.0, "x");
+        SLRVar<double> y = model.addVar(-10.0, 10.0, 0.0, "y");
+
+        model.setObjective(x - y, SLR_MINIMIZE);
+        model.addConstr(x - y == 0.0, "c0");
+        //model.addConstr(vars[SIZE - 1] <= 2.0, "c0");
         model.optimize();
-        for (auto &var : vars)
-            std::cout << var.get() << std::endl;
+        std::cout << x.get() << std::endl;
+        std::cout << y.get() << std::endl;
     }
     catch (const SLRException &e)
     {
