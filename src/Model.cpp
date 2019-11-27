@@ -396,7 +396,7 @@ void    SLRModel<T>::fillData()
     int nonZeroCoeffNb = 0;
     for (int i = 0; i < _constrLinearCoeffsPos.size(); i++)
     {
-        // /!\ HOT FIX /!\
+        // !!! HOT FIX
         if (i > 0 && std::get<1>(_constrLinearCoeffsPos[i]) == std::get<1>(_constrLinearCoeffsPos[i - 1]) && std::get<2>(_constrLinearCoeffsPos[i]) == std::get<2>(_constrLinearCoeffsPos[i - 1]))
         {
             _constrLinearCoeffs[nonZeroCoeffNb - 1] += std::get<0>(_constrLinearCoeffsPos[i]);
