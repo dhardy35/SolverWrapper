@@ -287,14 +287,14 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
     _quadricNb = 0;
     for (auto &coeff : quadricCoeffsPos)
     {
-            if (std::get<1>(coeff) == std::get<2>(coeff))
-                std::get<0>(coeff) *= 2.0;
+        if (std::get<1>(coeff) == std::get<2>(coeff))
+            std::get<0>(coeff) *= 2.0;
 
-            _objQuadricCoeffs.push_back(std::get<0>(coeff));
-            _objCoeffsRaws[_quadricNb] = std::get<1>(coeff);
-            _objCoeffsColumns[std::get<2>(coeff) + 1]++;
+        _objQuadricCoeffs.push_back(std::get<0>(coeff));
+        _objCoeffsRaws[_quadricNb] = std::get<1>(coeff);
+        _objCoeffsColumns[std::get<2>(coeff) + 1]++;
 
-            _quadricNb++;
+        _quadricNb++;
     }
     _objCoeffsColumns[0] = 0;
     for (int i = 1; i < _nbVar + 1; i++)
@@ -394,12 +394,20 @@ void    SLRModel<T>::fillData()
     _constrCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
     int nonZeroCoeffNb = 0;
-    for (const auto &pos : _constrLinearCoeffsPos)
+    for (int i = 0; i < _constrLinearCoeffsPos.size(); i++)
     {
-        _constrLinearCoeffs.push_back(std::get<0>(pos));
-        _constrCoeffsRaws[nonZeroCoeffNb] = std::get<1>(pos);
-        _constrCoeffsColumns[std::get<2>(pos) + 1]++;
-        nonZeroCoeffNb++;
+        // /!\ HOT FIX /!\
+        if (i > 0 && std::get<1>(_constrLinearCoeffsPos[i]) == std::get<1>(_constrLinearCoeffsPos[i - 1]) && std::get<2>(_constrLinearCoeffsPos[i]) == std::get<2>(_constrLinearCoeffsPos[i - 1]))
+        {
+            _constrLinearCoeffs[nonZeroCoeffNb - 1] += std::get<0>(_constrLinearCoeffsPos[i]);
+        }
+        else
+        {
+            _constrLinearCoeffs.push_back(std::get<0>(_constrLinearCoeffsPos[i]));
+            _constrCoeffsRaws[nonZeroCoeffNb] = std::get<1>(_constrLinearCoeffsPos[i]);
+            _constrCoeffsColumns[std::get<2>(_constrLinearCoeffsPos[i]) + 1]++;
+            nonZeroCoeffNb++;
+        }
     }
     for (int i = 1; i < _nbVar + 1; i++)
     {
