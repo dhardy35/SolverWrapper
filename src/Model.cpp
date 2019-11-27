@@ -427,7 +427,6 @@ void    SLRModel<T>::optimize()
     }
 
     fillData();
-    printOSQPVariables(_data);
     osqp_set_default_settings(&_settings);
 
     //_settings.scaling = 0;
