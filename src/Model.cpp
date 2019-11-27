@@ -272,7 +272,7 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
         {
             secondVarIndex = std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]));
             std::tuple<double, int, int> pos(expr._coeffs[i], std::min(firstVarIndex, secondVarIndex), std::max(firstVarIndex, secondVarIndex));
-            auto it = std::find(quadricCoeffsPos.begin(), quadricCoeffsPos.end(), pos);
+            auto it = std::find_if(quadricCoeffsPos.begin(), quadricCoeffsPos.end(), [&pos](const std::tuple<double, int, int> &vpos) { return std::get<1>(pos) == std::get<1>(vpos) && std::get<2>(pos) == std::get<2>(vpos); } );
             if (it == quadricCoeffsPos.end())
             {
                 quadricCoeffsPos.push_back(pos);
