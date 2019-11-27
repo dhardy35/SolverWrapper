@@ -244,12 +244,20 @@ void SLRModel<T>::updateVariableConstraints()
     }
 }
 
+bool sortbysec(const std::tuple<double, int, int>& a,
+               const std::tuple<double, int, int>& b)
+{
+    if (std::get<2>(a) == std::get<2>(b))
+        return (std::get<1>(a) < std::get<1>(b));
+    return (std::get<2>(a) < std::get<2>(b));
+}
+
 template <typename T>
 void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
     _isObjectivSet = true;
 
-    std::vector<std::tuple<int, int>> quadricCoeffsPos;
+    std::vector<std::tuple<double, int, int>> quadricCoeffsPos;
     _objLinearCoeffs = std::vector<double>(_nbVar, 0.0);
 
     updateVariableConstraints();
@@ -263,24 +271,15 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
         if (expr._vars[i].size() == 2 && expr._coeffs[i] != 0.0)
         {
             secondVarIndex = std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]));
-            std::tuple<int, int> pos(std::min(firstVarIndex, secondVarIndex), std::max(firstVarIndex, secondVarIndex));
+            std::tuple<double, int, int> pos(expr._coeffs[i], std::min(firstVarIndex, secondVarIndex), std::max(firstVarIndex, secondVarIndex));
             auto it = std::find(quadricCoeffsPos.begin(), quadricCoeffsPos.end(), pos);
             if (it == quadricCoeffsPos.end())
             {
-                int k;
-                for (k = 0 ; k < quadricCoeffsPos.size() &&
-                             std::get<1>(quadricCoeffsPos[k]) < std::get<1>(pos); k++);
-                for ( ; k < quadricCoeffsPos.size() &&
-                        std::get<1>(quadricCoeffsPos[k]) == std::get<1>(pos) &&
-                        std::get<0>(quadricCoeffsPos[k]) < std::get<0>(pos) ; k++);
-
-                quadricCoeffsPos.insert(quadricCoeffsPos.begin() + k, pos);
-                _objQuadricCoeffs.insert(_objQuadricCoeffs.begin() + k, expr._coeffs[i]);
+                quadricCoeffsPos.push_back(pos);
             }
             else
             {
-                int idx = std::distance(quadricCoeffsPos.begin(), it);
-                _objQuadricCoeffs[idx] += expr._coeffs[i];
+                std::get<0>(*it) += std::get<0>(pos);
             }
         }
         else if (expr._vars[i].size() == 1 && expr._coeffs[i] != 0.0)
@@ -288,18 +287,20 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
             _objLinearCoeffs[firstVarIndex] += expr._coeffs[i];
         }
     }
+    sort(quadricCoeffsPos.begin(), quadricCoeffsPos.end(), sortbysec);
 
     _objCoeffsRaws = std::vector<c_int>(quadricCoeffsPos.size(), 0);
     _objCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
     _quadricNb = 0;
-    for (int i = 0; i < _objQuadricCoeffs.size(); i++)
+    for (auto &coeff : quadricCoeffsPos)
     {
-            if (std::get<0>(quadricCoeffsPos[i]) == std::get<1>(quadricCoeffsPos[i]))
-                _objQuadricCoeffs[i] *= 2.0;
+            if (std::get<1>(coeff) == std::get<2>(coeff))
+                std::get<0>(coeff) *= 2.0;
 
-            _objCoeffsRaws[_quadricNb] = std::get<0>(quadricCoeffsPos[i]);
-            _objCoeffsColumns[std::get<1>(quadricCoeffsPos[i]) + 1]++;
+            _objQuadricCoeffs.push_back(std::get<0>(coeff));
+            _objCoeffsRaws[_quadricNb] = std::get<1>(coeff);
+            _objCoeffsColumns[std::get<2>(coeff) + 1]++;
 
             _quadricNb++;
     }
