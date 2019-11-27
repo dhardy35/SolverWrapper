@@ -238,58 +238,69 @@ template <typename T>
 void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
     _isObjectivSet = true;
-    std::vector<std::vector<double>> fullMatrix(_nbVar, std::vector<double>(_nbVar, 0.0));
+
+    std::vector<double> quadricCoeffs;
+    std::vector<std::tuple<int, int>> quadricCoeffsPos;
+    _objLinearCoeffs = std::vector<double>(_nbVar, 0.0);
 
     updateVariableConstraints();
 
-    _objLinearCoeffs = std::vector<double>(_nbVar, 0.0);
     long firstVarIndex;
     long secondVarIndex;
+
     for (int i = 0; i < expr._vars.size(); i++)
     {
         firstVarIndex = std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]));
-        if (expr._vars[i].size() == 2)
+        if (expr._vars[i].size() == 2 && expr._coeffs[i] != 0.0)
         {
             secondVarIndex = std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][1]));
-            fullMatrix[std::min(firstVarIndex, secondVarIndex)][std::max(firstVarIndex, secondVarIndex)] += expr._coeffs[i];
+            std::tuple<int, int> pos(std::min(firstVarIndex, secondVarIndex), std::max(firstVarIndex, secondVarIndex));
+            auto it = std::find(quadricCoeffsPos.begin(), quadricCoeffsPos.end(), pos);
+            if (it == quadricCoeffsPos.end())
+            {
+                int k;
+                for (k = 0 ; k < quadricCoeffsPos.size() &&
+                             std::get<1>(quadricCoeffsPos[k]) < std::get<1>(pos); k++);
+                for ( ; k < quadricCoeffsPos.size() &&
+                        std::get<1>(quadricCoeffsPos[k]) == std::get<1>(pos) &&
+                        std::get<0>(quadricCoeffsPos[k]) < std::get<0>(pos) ; k++);
+
+                quadricCoeffsPos.insert(quadricCoeffsPos.begin() + k, pos);
+                quadricCoeffs.insert(quadricCoeffs.begin() + k, expr._coeffs[i]);
+            }
+            else
+            {
+                int idx = std::distance(quadricCoeffsPos.begin(), it);
+                quadricCoeffs[idx] += expr._coeffs[i];
+            }
             _quadricNb++;
         }
-        else if (expr._vars[i].size() == 1)
+        else if (expr._vars[i].size() == 1 && expr._coeffs[i] != 0.0)
         {
             _objLinearCoeffs[firstVarIndex] += expr._coeffs[i];
         }
     }
-
     _quadricNb = 0;
-    for (int i = 0; i < _nbVar; i++)
-    {
-        for (int j = 0; j < _nbVar; j++)
-        {
-            if (fullMatrix[j][i] != 0.0)
-            {
-                _quadricNb++;
-            }
-       }
-    }
+    for (const auto &coeff : quadricCoeffs)
+        if (coeff != 0.0)
+            _quadricNb++;
+
     std::cout << "qua = " << _quadricNb << std::endl;
     _objQuadricCoeffs = std::vector<double>(_quadricNb, 0.0);
     _objCoeffsRaws = std::vector<c_int>(_quadricNb, 0);
     _objCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
     _quadricNb = 0;
-    for (int i = 0; i < _nbVar; i++)
+    for (int i = 0; i < quadricCoeffs.size(); i++)
     {
-        for (int j = 0; j < _nbVar; j++)
+        if (quadricCoeffs[i] != 0.0)
         {
-            if (fullMatrix[j][i] != 0.0)
-            {
-                if (j == i)
-                    fullMatrix[j][i] *= 2.0;
-                _objQuadricCoeffs[_quadricNb] = fullMatrix[j][i];
-                _objCoeffsRaws[_quadricNb] = j;
-                _objCoeffsColumns[i + 1]++;
-                _quadricNb++;
-            }
+            if (std::get<0>(quadricCoeffsPos[i]) == std::get<1>(quadricCoeffsPos[i]))
+                quadricCoeffs[i] *= 2.0;
+            _objQuadricCoeffs[_quadricNb] = quadricCoeffs[i];
+            _objCoeffsRaws[_quadricNb] = std::get<0>(quadricCoeffsPos[i]);
+            _objCoeffsColumns[std::get<1>(quadricCoeffsPos[i]) + 1]++;
+            _quadricNb++;
         }
     }
     _objCoeffsColumns[0] = 0;
@@ -372,12 +383,11 @@ void    SLRModel<T>::printOSQPVariables(OSQPData &data)
     std::cout << std::endl << "q = ";
     for (int i = 0; i < data.n; i++)
         std::cout << data.q[i] << " ";
-       std::cout << std::endl;
+    std::cout << std::endl;
     std::cout << "P.NZ = " << data.P->nz << std::endl;
     std::cout << "P.N = " << data.P->n << std::endl;
     std::cout << "P.M = " << data.P->m << std::endl;
     std::cout << "End ----------" << std::endl;
-
 }
 
 template <typename T>

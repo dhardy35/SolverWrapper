@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <tuple>
 
 #ifdef GRB
 #include "gurobi_c++.h"
