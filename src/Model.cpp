@@ -458,7 +458,6 @@ void    SLRModel<T>::optimize()
     }
     _lowerBound.clear();
     _upperBound.clear();
-    _constrCoeffs.clear();
     _objQuadricCoeffs.clear();
     _objLinearCoeffs.clear();
     _objCoeffsRaws.clear();
@@ -466,6 +465,7 @@ void    SLRModel<T>::optimize()
     _constrLinearCoeffs.clear();
     _constrCoeffsRaws.clear();
     _constrCoeffsColumns.clear();
+    _constrLinearCoeffsPos.clear();
     _quadricNb = 0;
     _nbConstr = 0;
     _data = OSQPData();

@@ -53,7 +53,6 @@ public:
     int                                 _nbConstr;
     std::vector<double>                _lowerBound;
     std::vector<double>                 _upperBound;
-    std::vector<std::vector<double>>    _constrCoeffs;
     std::vector<double>         _objQuadricCoeffs;
     std::vector<double>         _objLinearCoeffs;
     std::vector<c_int>           _objCoeffsRaws;
