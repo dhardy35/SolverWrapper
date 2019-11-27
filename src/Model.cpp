@@ -225,11 +225,21 @@ void SLRModel<T>::updateVariableConstraints()
 
     for (auto const &var : _varsVector)
     {
-        std::vector<double> constrCoeff(_nbVar, 0.0);
         _lowerBound.push_back(var.getLowerBound());
         _upperBound.push_back(var.getUpperBound());
-        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var))] = 1.0;
-        _constrCoeffs.push_back(constrCoeff);
+
+        std::tuple<int, int> pos(_nbConstr, std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var)));
+
+        int k;
+        for (k = 0 ; k < _constrLinearCoeffsPos.size() &&
+                     std::get<1>(_constrLinearCoeffsPos[k]) < std::get<1>(pos); k++);
+        for ( ; k < _constrLinearCoeffsPos.size() &&
+                std::get<1>(_constrLinearCoeffsPos[k]) == std::get<1>(pos) &&
+                std::get<0>(_constrLinearCoeffsPos[k]) < std::get<0>(pos) ; k++);
+
+        _constrLinearCoeffsPos.insert(_constrLinearCoeffsPos.begin() + k, pos);
+        _constrLinearCoeffs.insert(_constrLinearCoeffs.begin() + k, 1.0);
+
         _nbConstr++;
     }
 }
@@ -239,7 +249,6 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
     _isObjectivSet = true;
 
-    std::vector<double> quadricCoeffs;
     std::vector<std::tuple<int, int>> quadricCoeffsPos;
     _objLinearCoeffs = std::vector<double>(_nbVar, 0.0);
 
@@ -266,42 +275,33 @@ void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
                         std::get<0>(quadricCoeffsPos[k]) < std::get<0>(pos) ; k++);
 
                 quadricCoeffsPos.insert(quadricCoeffsPos.begin() + k, pos);
-                quadricCoeffs.insert(quadricCoeffs.begin() + k, expr._coeffs[i]);
+                _objQuadricCoeffs.insert(_objQuadricCoeffs.begin() + k, expr._coeffs[i]);
             }
             else
             {
                 int idx = std::distance(quadricCoeffsPos.begin(), it);
-                quadricCoeffs[idx] += expr._coeffs[i];
+                _objQuadricCoeffs[idx] += expr._coeffs[i];
             }
-            _quadricNb++;
         }
         else if (expr._vars[i].size() == 1 && expr._coeffs[i] != 0.0)
         {
             _objLinearCoeffs[firstVarIndex] += expr._coeffs[i];
         }
     }
-    _quadricNb = 0;
-    for (const auto &coeff : quadricCoeffs)
-        if (coeff != 0.0)
-            _quadricNb++;
 
-    std::cout << "qua = " << _quadricNb << std::endl;
-    _objQuadricCoeffs = std::vector<double>(_quadricNb, 0.0);
-    _objCoeffsRaws = std::vector<c_int>(_quadricNb, 0);
+    _objCoeffsRaws = std::vector<c_int>(quadricCoeffsPos.size(), 0);
     _objCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
     _quadricNb = 0;
-    for (int i = 0; i < quadricCoeffs.size(); i++)
+    for (int i = 0; i < _objQuadricCoeffs.size(); i++)
     {
-        if (quadricCoeffs[i] != 0.0)
-        {
             if (std::get<0>(quadricCoeffsPos[i]) == std::get<1>(quadricCoeffsPos[i]))
-                quadricCoeffs[i] *= 2.0;
-            _objQuadricCoeffs[_quadricNb] = quadricCoeffs[i];
+                _objQuadricCoeffs[i] *= 2.0;
+
             _objCoeffsRaws[_quadricNb] = std::get<0>(quadricCoeffsPos[i]);
             _objCoeffsColumns[std::get<1>(quadricCoeffsPos[i]) + 1]++;
+
             _quadricNb++;
-        }
     }
     _objCoeffsColumns[0] = 0;
     for (int i = 1; i < _nbVar + 1; i++)
@@ -315,16 +315,27 @@ template <typename T>
 void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::string &name)
 {
     // only linear constraints
-    std::vector<double> constrCoeff(_nbVar, 0.0);
     auto expr = constrExpr._exprLeft - constrExpr._exprRight;
     double constant = -expr._constant;
+
     for (int i = 0; i < expr._vars.size(); i++)
     {
         if (expr._vars[i].size() > 1)
             throw SLRException(031502, "SLRModel::addConstr", "only linear constraints are allowed");
-        constrCoeff[std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]))] += expr._coeffs[i];
+        if (expr._coeffs[i] != 0.0)
+        {
+            std::tuple<int, int> pos(_nbConstr, std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0])));
+            int k;
+            for (k = 0 ; k < _constrLinearCoeffsPos.size() &&
+                         std::get<1>(_constrLinearCoeffsPos[k]) < std::get<1>(pos); k++);
+            for ( ; k < _constrLinearCoeffsPos.size() &&
+                    std::get<1>(_constrLinearCoeffsPos[k]) == std::get<1>(pos) &&
+                    std::get<0>(_constrLinearCoeffsPos[k]) < std::get<0>(pos) ; k++);
+
+            _constrLinearCoeffsPos.insert(_constrLinearCoeffsPos.begin() + k, pos);
+            _constrLinearCoeffs.insert(_constrLinearCoeffs.begin() + k, expr._coeffs[i]);
+        }
     }
-    _constrCoeffs.push_back(constrCoeff);
     if (constrExpr._sign == SLR_EQUAL)
     {
         _lowerBound.push_back(constant);
@@ -393,32 +404,15 @@ void    SLRModel<T>::printOSQPVariables(OSQPData &data)
 template <typename T>
 void    SLRModel<T>::fillData()
 {
-    unsigned int nonZeroCoeffNb = 0;
-    for (int i = 0; i < _constrCoeffs.size(); i++)
-    {
-        for (int j = 0; j < _constrCoeffs[i].size(); j++)
-        {
-            if (_constrCoeffs[i][j] != 0.0)
-                nonZeroCoeffNb++;
-        }
-    }
-    _constrLinearCoeffs = std::vector<double>(nonZeroCoeffNb, 0.0);
-    _constrCoeffsRaws = std::vector<c_int>(nonZeroCoeffNb, 0);
+    _constrCoeffsRaws = std::vector<c_int>(_constrLinearCoeffsPos.size(), 0);
     _constrCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
-    nonZeroCoeffNb = 0;
-    for (int i = 0; i < _constrCoeffs[0].size(); i++)
+    int nonZeroCoeffNb = 0;
+    for (const auto &pos : _constrLinearCoeffsPos)
     {
-        for (int j = 0; j < _constrCoeffs.size(); j++)
-        {
-            if (_constrCoeffs[j][i] != 0.0)
-            {
-                _constrLinearCoeffs[nonZeroCoeffNb] = _constrCoeffs[j][i];
-                _constrCoeffsRaws[nonZeroCoeffNb] = j;
-                _constrCoeffsColumns[i + 1]++;
-                nonZeroCoeffNb++;
-            }
-        }
+        _constrCoeffsRaws[nonZeroCoeffNb] = std::get<0>(pos);
+        _constrCoeffsColumns[std::get<1>(pos) + 1]++;
+        nonZeroCoeffNb++;
     }
     for (int i = 1; i < _nbVar + 1; i++)
     {
