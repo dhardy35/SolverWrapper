@@ -59,7 +59,7 @@ public:
     std::vector<c_int>           _objCoeffsRaws;
     std::vector<c_int>           _objCoeffsColumns;
     std::vector<double>  _constrLinearCoeffs;
-    std::vector<std::tuple<int, int>>   _constrLinearCoeffsPos;
+    std::vector<std::tuple<double, int, int>>   _constrLinearCoeffsPos;
     std::vector<c_int>  _constrCoeffsRaws;
     std::vector<c_int>  _constrCoeffsColumns;
 

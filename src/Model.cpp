@@ -219,6 +219,14 @@ SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const 
     return (variable);
 }
 
+bool sortbysec(const std::tuple<double, int, int>& a,
+               const std::tuple<double, int, int>& b)
+{
+    if (std::get<2>(a) == std::get<2>(b))
+        return (std::get<1>(a) < std::get<1>(b));
+    return (std::get<2>(a) < std::get<2>(b));
+}
+
 template <typename T>
 void SLRModel<T>::updateVariableConstraints()
 {
@@ -228,29 +236,13 @@ void SLRModel<T>::updateVariableConstraints()
         _lowerBound.push_back(var.getLowerBound());
         _upperBound.push_back(var.getUpperBound());
 
-        std::tuple<int, int> pos(_nbConstr, std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var)));
-
-        int k;
-        for (k = 0 ; k < _constrLinearCoeffsPos.size() &&
-                     std::get<1>(_constrLinearCoeffsPos[k]) < std::get<1>(pos); k++);
-        for ( ; k < _constrLinearCoeffsPos.size() &&
-                std::get<1>(_constrLinearCoeffsPos[k]) == std::get<1>(pos) &&
-                std::get<0>(_constrLinearCoeffsPos[k]) < std::get<0>(pos) ; k++);
-
-        _constrLinearCoeffsPos.insert(_constrLinearCoeffsPos.begin() + k, pos);
-        _constrLinearCoeffs.insert(_constrLinearCoeffs.begin() + k, 1.0);
+        _constrLinearCoeffsPos.emplace_back(1.0, _nbConstr, std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), var)));
 
         _nbConstr++;
     }
 }
 
-bool sortbysec(const std::tuple<double, int, int>& a,
-               const std::tuple<double, int, int>& b)
-{
-    if (std::get<2>(a) == std::get<2>(b))
-        return (std::get<1>(a) < std::get<1>(b));
-    return (std::get<2>(a) < std::get<2>(b));
-}
+
 
 template <typename T>
 void SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
@@ -323,20 +315,11 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
     {
         if (expr._vars[i].size() > 1)
             throw SLRException(031502, "SLRModel::addConstr", "only linear constraints are allowed");
-        if (expr._coeffs[i] != 0.0)
-        {
-            std::tuple<int, int> pos(_nbConstr, std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0])));
-            int k;
-            for (k = 0 ; k < _constrLinearCoeffsPos.size() &&
-                         std::get<1>(_constrLinearCoeffsPos[k]) < std::get<1>(pos); k++);
-            for ( ; k < _constrLinearCoeffsPos.size() &&
-                    std::get<1>(_constrLinearCoeffsPos[k]) == std::get<1>(pos) &&
-                    std::get<0>(_constrLinearCoeffsPos[k]) < std::get<0>(pos) ; k++);
 
-            _constrLinearCoeffsPos.insert(_constrLinearCoeffsPos.begin() + k, pos);
-            _constrLinearCoeffs.insert(_constrLinearCoeffs.begin() + k, expr._coeffs[i]);
-        }
+        if (expr._coeffs[i] != 0.0)
+            _constrLinearCoeffsPos.emplace_back(expr._coeffs[i], _nbConstr, std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0])));
     }
+
     if (constrExpr._sign == SLR_EQUAL)
     {
         _lowerBound.push_back(constant);
@@ -405,14 +388,17 @@ void    SLRModel<T>::printOSQPVariables(OSQPData &data)
 template <typename T>
 void    SLRModel<T>::fillData()
 {
+    sort(_constrLinearCoeffsPos.begin(), _constrLinearCoeffsPos.end(), sortbysec);
+
     _constrCoeffsRaws = std::vector<c_int>(_constrLinearCoeffsPos.size(), 0);
     _constrCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
     int nonZeroCoeffNb = 0;
     for (const auto &pos : _constrLinearCoeffsPos)
     {
-        _constrCoeffsRaws[nonZeroCoeffNb] = std::get<0>(pos);
-        _constrCoeffsColumns[std::get<1>(pos) + 1]++;
+        _constrLinearCoeffs.push_back(std::get<0>(pos));
+        _constrCoeffsRaws[nonZeroCoeffNb] = std::get<1>(pos);
+        _constrCoeffsColumns[std::get<2>(pos) + 1]++;
         nonZeroCoeffNb++;
     }
     for (int i = 1; i < _nbVar + 1; i++)
@@ -441,6 +427,7 @@ void    SLRModel<T>::optimize()
     }
 
     fillData();
+    printOSQPVariables(_data);
     osqp_set_default_settings(&_settings);
 
     //_settings.scaling = 0;
