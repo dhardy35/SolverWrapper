@@ -322,7 +322,7 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
         {
             coeffIndex = std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]));
             std::tuple<double, int, int> pos(expr._coeffs[i], _nbConstr, coeffIndex);
-            auto it = std::find_if(_constrLinearCoeffsPos.begin() + coeffIndex, _constrLinearCoeffsPos.end(), [&pos](const std::tuple<double, int, int> &vpos) { return std::get<1>(pos) == std::get<1>(vpos) && std::get<2>(pos) == std::get<2>(vpos); } );
+            auto it = std::find_if(_constrLinearCoeffsPos.begin() + startingPoint, _constrLinearCoeffsPos.end(), [&pos](const std::tuple<double, int, int> &vpos) { return std::get<1>(pos) == std::get<1>(vpos) && std::get<2>(pos) == std::get<2>(vpos); } );
             if (it == _constrLinearCoeffsPos.end())
             {
                 _constrLinearCoeffsPos.push_back(pos);
