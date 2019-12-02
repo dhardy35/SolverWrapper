@@ -310,6 +310,8 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
     // only linear constraints
     auto expr = constrExpr._exprLeft - constrExpr._exprRight;
     double constant = -expr._constant;
+    int startingPoint = _constrLinearCoeffsPos.size();
+    int coeffIndex;
 
     for (int i = 0; i < expr._vars.size(); i++)
     {
@@ -317,7 +319,19 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
             throw SLRException(031502, "SLRModel::addConstr", "only linear constraints are allowed");
 
         if (expr._coeffs[i] != 0.0)
-            _constrLinearCoeffsPos.emplace_back(expr._coeffs[i], _nbConstr, std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0])));
+        {
+            coeffIndex = std::distance(_varsVector.begin(), std::find(_varsVector.begin(), _varsVector.end(), expr._vars[i][0]));
+            std::tuple<double, int, int> pos(expr._coeffs[i], _nbConstr, coeffIndex);
+            auto it = std::find_if(_constrLinearCoeffsPos.begin() + coeffIndex, _constrLinearCoeffsPos.end(), [&pos](const std::tuple<double, int, int> &vpos) { return std::get<1>(pos) == std::get<1>(vpos) && std::get<2>(pos) == std::get<2>(vpos); } );
+            if (it == _constrLinearCoeffsPos.end())
+            {
+                _constrLinearCoeffsPos.push_back(pos);
+            }
+            else
+            {
+                std::get<0>(*it) += std::get<0>(pos);
+            }
+        }
     }
 
     if (constrExpr._sign == SLR_EQUAL)
@@ -394,20 +408,12 @@ void    SLRModel<T>::fillData()
     _constrCoeffsColumns = std::vector<c_int>(_nbVar + 1, 0);
 
     int nonZeroCoeffNb = 0;
-    for (int i = 0; i < _constrLinearCoeffsPos.size(); i++)
+    for (const auto &linerCoeff : _constrLinearCoeffsPos)
     {
-        // !!! HOT FIX
-        if (i > 0 && std::get<1>(_constrLinearCoeffsPos[i]) == std::get<1>(_constrLinearCoeffsPos[i - 1]) && std::get<2>(_constrLinearCoeffsPos[i]) == std::get<2>(_constrLinearCoeffsPos[i - 1]))
-        {
-            _constrLinearCoeffs[nonZeroCoeffNb - 1] += std::get<0>(_constrLinearCoeffsPos[i]);
-        }
-        else
-        {
-            _constrLinearCoeffs.push_back(std::get<0>(_constrLinearCoeffsPos[i]));
-            _constrCoeffsRaws[nonZeroCoeffNb] = std::get<1>(_constrLinearCoeffsPos[i]);
-            _constrCoeffsColumns[std::get<2>(_constrLinearCoeffsPos[i]) + 1]++;
+            _constrLinearCoeffs.push_back(std::get<0>(linerCoeff));
+            _constrCoeffsRaws[nonZeroCoeffNb] = std::get<1>(linerCoeff);
+            _constrCoeffsColumns[std::get<2>(linerCoeff) + 1]++;
             nonZeroCoeffNb++;
-        }
     }
     for (int i = 1; i < _nbVar + 1; i++)
     {
