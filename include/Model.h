@@ -86,7 +86,8 @@ public:
     void        printDebug(const bool &);
     void        update();
     double      getObjectiveError(const SLRExpr<T> &) const;
-
+    static bool sortbysec(const std::tuple<double, int, int>& ,
+                          const std::tuple<double, int, int>& );
 
 #ifdef GRB
     SLRModel();

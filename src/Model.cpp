@@ -49,6 +49,14 @@ double      SLRModel<T>::getObjectiveError(const SLRExpr<T> &expr) const
     return error;
 }
 
+template <typename T>
+bool SLRModel<T>::sortbysec(const std::tuple<double, int, int>& a,
+                            const std::tuple<double, int, int>& b)
+{
+    if (std::get<2>(a) == std::get<2>(b))
+        return (std::get<1>(a) < std::get<1>(b));
+    return (std::get<2>(a) < std::get<2>(b));
+}
 
 #ifdef GRB
 
@@ -217,14 +225,6 @@ SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const 
     _nbVar++;
 
     return (variable);
-}
-
-bool sortbysec(const std::tuple<double, int, int>& a,
-               const std::tuple<double, int, int>& b)
-{
-    if (std::get<2>(a) == std::get<2>(b))
-        return (std::get<1>(a) < std::get<1>(b));
-    return (std::get<2>(a) < std::get<2>(b));
 }
 
 template <typename T>
