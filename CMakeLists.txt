@@ -8,17 +8,11 @@ include_directories(include/)
 include_directories(src/)
 
 #OSQP
-if (CURVI_BUILD_WITH_OSPQ)
-    message("osqp")
-    add_subdirectory(lib/osqp)
-    include_directories(lib/osqp/)
-    target_link_libraries(${PROJECT_NAME} osqp)
-endif(CURVI_BUILD_WITH_OSPQ)
+add_subdirectory(lib/osqp)
+target_link_libraries(${PROJECT_NAME} osqp)
 
 if (CURVI_BUILD_WITH_GRB)
-    message("grb")
-    INCLUDE_DIRECTORIES($ENV{GUROBI_HOME}/include)
-    link_directories($ENV{GUROBI_HOME}/lib)
+    set_property(TARGET SolverWrapper APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES $ENV{GUROBI_HOME}/include)
     target_link_libraries(${PROJECT_NAME} -L/$ENV{GUROBI_HOME}/lib/ -lgurobi_c++ -lgurobi81)
 endif(CURVI_BUILD_WITH_GRB)
 
