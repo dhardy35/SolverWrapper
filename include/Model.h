@@ -49,7 +49,7 @@ public:
 
 #elif OSQP
     float                               _timeLimit = std::numeric_limits<float>::max();
-    bool                                _verbose = true;
+    bool                                _verbose = false;
     bool                                _warmStart = true;
     bool                                _isObjectivSet;
     double                             _constant;
