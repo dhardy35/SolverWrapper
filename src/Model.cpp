@@ -109,9 +109,7 @@ GRBLinExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
 template <typename T>
 void     SLRModel<T>::setObjective(const SLRExpr<T> &expr, int goal)
 {
-    std::cout << expr._varIndex << " " << expr._vars.size() << std::endl;
     GRBQuadExpr grbExpr = SLRExprToGRBQuadExpr(expr);
-    std::cout << grbExpr.size() << " " << expr._varIndex << " " << expr._vars.size() << std::endl;
     _model->setObjective(grbExpr, goal);
 }
 
@@ -126,14 +124,6 @@ void     SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const std::s
 template <typename T>
 void    SLRModel<T>::optimize()
 {
-    // temporary not doing anything
-/*
-    for (int i = 0; i < _varsVector.size(); i++)
-    {
-        std::cout << _varsVector[i].getSolution() << std::endl;
-        _vars[i].set(GRB_DoubleAttr_Start, _varsVector[i].getSolution());
-    }*/
-
     _model->optimize();
     _solutionState = _model->get(GRB_IntAttr_SolCount);
     for (int i = 0;_solutionState > 0 && i < _vars.size(); i++)
@@ -183,7 +173,7 @@ void        SLRModel<T>::setPresolve(int doPresolve)
 }
 
 template <typename T>
-void        SLRModel<T>::setTimeLimit(GRB_DoubleParam flag, float timeLimit)
+void        SLRModel<T>::setTimeLimit(float timeLimit)
 {
     _model->set(GRB_DoubleParam_TimeLimit, timeLimit);
 }
@@ -466,8 +456,6 @@ void    SLRModel<T>::optimize()
     osqp_solve(_work);
 
     _solutionState = (int)_work->info->status_val;
-    std::cout << "result = " << _work->info->obj_val << std::endl;
-    std::cout << "------- " << _work->info->status << " ------------" << std::endl;
 
     for (int i = 0; (_solutionState == 1 || _solutionState == 2 || _solutionState == -2) && i < _data.n; i++)
     {
@@ -518,7 +506,7 @@ void        SLRModel<T>::setPresolve(int doPresolve)
 }
 
 template <typename T>
-void        SLRModel<T>::setTimeLimit(GRB_DoubleParam flag, float timeLimit)
+void        SLRModel<T>::setTimeLimit(float timeLimit)
 {
     _timeLimit = timeLimit;
 }

@@ -48,7 +48,7 @@ public:
     GRBQuadExpr                 SLRExprToGRBQuadExpr(const SLRExpr<T> &expr);
 
 #elif OSQP
-    float                               _timeLimit = std::numeric_limit<float>::max();
+    float                               _timeLimit = std::numeric_limits<float>::max();
     bool                                _verbose = true;
     bool                                _warmStart = true;
     bool                                _isObjectivSet;
