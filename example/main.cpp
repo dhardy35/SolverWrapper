@@ -58,7 +58,7 @@ int main()
 
         // Create variables
         std::vector<SLRVar<double>> vars;
-        model.printDebug(true);
+        model.printDebug(false);
         for (int i = 0; i < SIZE; i++)
         {
             vars.push_back(model.addVar(0.0, 10.0, 0.0, "x" + std::to_string(i)));

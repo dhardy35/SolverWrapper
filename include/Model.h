@@ -48,6 +48,9 @@ public:
     GRBQuadExpr                 SLRExprToGRBQuadExpr(const SLRExpr<T> &expr);
 
 #elif OSQP
+    float                               _timeLimit = std::numeric_limit<float>::max();
+    bool                                _verbose = true;
+    bool                                _warmStart = true;
     bool                                _isObjectivSet;
     double                             _constant;
     int                                 _nbConstr;
@@ -88,6 +91,9 @@ public:
     double      getObjectiveError(const SLRExpr<T> &) const;
     static bool sortbysec(const std::tuple<double, int, int>& ,
                           const std::tuple<double, int, int>& );
+    void        setPresolve(int);
+    void        setNbThread(int);
+    void        setTimeLimit(float);
 
 #ifdef GRB
     SLRModel();

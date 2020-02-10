@@ -171,19 +171,21 @@ void        SLRModel<T>::update()
 }
 
 template <typename T>
-void        SLRModel<T>::set(GRB_IntParam flag, int todo)
+void        SLRModel<T>::setNbThread(int nbThread)
 {
-    if (flag == GRB_IntParam_Threads)
-        _model->set(GRB_IntParam_Threads, todo);
-    else if (flag == GRB_IntParam_Presolve)
-        _model->set(GRB_IntParam_Presolve, todo);
+    _model->set(GRB_IntParam_Threads, nbThread);
 }
 
 template <typename T>
-void        SLRModel<T>::set(GRB_DoubleParam flag, float todo)
+void        SLRModel<T>::setPresolve(int doPresolve)
 {
-    if (flag == GRB_DoubleParam_TimeLimit)
-        _model->set(GRB_DoubleParam_TimeLimit, todo);
+    _model->set(GRB_IntParam_Presolve, doPresolve);
+}
+
+template <typename T>
+void        SLRModel<T>::setTimeLimit(GRB_DoubleParam flag, float timeLimit)
+{
+    _model->set(GRB_DoubleParam_TimeLimit, timeLimit);
 }
 
 template <typename T>
@@ -446,9 +448,10 @@ void    SLRModel<T>::optimize()
     //_settings.scaling = 0;
     //_settings.polish = 1;
     //_settings.max_iter = 10000;
-    _settings.verbose = 1;
     //_settings.linsys_solver = MKL_PARDISO_SOLVER;
-    _settings.warm_start = 1;
+    _settings.verbose = _verbose;
+    _settings.warm_start = _warmStart;
+    _settings.time_limit = _timeLimit;
     //_settings.alpha = 1;
 
     if (osqp_setup(&_work, &_data, &_settings) != 0)
@@ -498,9 +501,27 @@ void    SLRModel<T>::printResult()
 template <typename T>
 void        SLRModel<T>::printDebug(const bool &state)
 {
-    // todo
+    _verbose = state;
 }
 
+template <typename T>
+void        SLRModel<T>::setNbThread(int nbThread)
+{
+    std::cout << "OSQP doesn't allow multithreading" << std::endl;
+}
+
+template <typename T>
+void        SLRModel<T>::setPresolve(int doPresolve)
+{
+    if (doPresolve == 0)
+        _warmStart = false;
+}
+
+template <typename T>
+void        SLRModel<T>::setTimeLimit(GRB_DoubleParam flag, float timeLimit)
+{
+    _timeLimit = timeLimit;
+}
 
 template <typename T>
 void        SLRModel<T>::update()
