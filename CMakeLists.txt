@@ -9,7 +9,7 @@ include_directories(src/)
 
 #OSQP
 find_package(osqp REQUIRED)
-include_directories(/usr/local/include/osqp/)
+include_directories(lib/osqp/)
 target_link_libraries(${PROJECT_NAME} libosqp.a)
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})
 
