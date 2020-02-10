@@ -21,7 +21,7 @@ SLRVar<T>    SLRModel<T>::getVarByName(const std::string &name)
     auto idx = std::find(_varsVector.begin(), _varsVector.end(), name);
     if (idx != _varsVector.end())
         return (*idx);
-    throw SLRException(030306, "SLRModel::getVarByName", "Variable name not known");
+    throw SLRException(30001, "SLRModel::getVarByName", "Variable name not known");
 }
 
 template <typename T>
@@ -95,7 +95,7 @@ GRBLinExpr      SLRModel<T>::SLRExprToGRBLineExpr(const SLRExpr<T> &expr)
     {
         if (expr._vars[i].size() == 2)
         {
-            throw SLRException(030602, "SLRModel::SLRExprToGRBLineExpr", "only linear constraints are allowed");
+            throw SLRException(30102, "SLRModel::SLRExprToGRBLineExpr", "only linear constraints are allowed");
         }
         else
         {
@@ -150,7 +150,7 @@ SLRVar<T>   SLRModel<T>::addVar(const T &lowerBound, const T &upperBound, const 
     else if (std::is_same<T, float>::value || std::is_same<T, double>::value)
         _vars.push_back(_model->addVar(lowerBound, upperBound, solution, GRB_CONTINUOUS, name));
     else
-        throw SLRException(031005, "Model::addVar", "Unknown type");
+        throw SLRException(30103, "Model::addVar", "Unknown type");
     return (variable);
 }
 
@@ -161,7 +161,7 @@ void        SLRModel<T>::update()
 }
 
 template <typename T>
-void        SLRModel<T>::setNbThread(int nbThread)
+void        SLRModel<T>::setNbThread(unsigned int nbThread)
 {
     _model->set(GRB_IntParam_Threads, nbThread);
 }
@@ -308,7 +308,7 @@ void         SLRModel<T>::addConstr(const SLRConstrExpr<T> &constrExpr, const st
     for (int i = 0; i < expr._vars.size(); i++)
     {
         if (expr._vars[i].size() > 1)
-            throw SLRException(031502, "SLRModel::addConstr", "only linear constraints are allowed");
+            throw SLRException(30202, "SLRModel::addConstr", "only linear constraints are allowed");
 
         if (expr._coeffs[i] != 0.0)
         {
@@ -445,7 +445,7 @@ void    SLRModel<T>::optimize()
     //_settings.alpha = 1;
 
     if (osqp_setup(&_work, &_data, &_settings) != 0)
-        throw SLRException(31804, "SLRModel::optimize", "osqp_setup failed");
+        throw SLRException(30204, "SLRModel::optimize", "osqp_setup failed");
 
     _x.clear();
     for (const auto & v : _varsVector)
@@ -493,7 +493,7 @@ void        SLRModel<T>::printDebug(const bool &state)
 }
 
 template <typename T>
-void        SLRModel<T>::setNbThread(int nbThread)
+void        SLRModel<T>::setNbThread(unsigned int nbThread)
 {
     std::cout << "OSQP doesn't allow multithreading" << std::endl;
 }
@@ -508,6 +508,8 @@ void        SLRModel<T>::setPresolve(int doPresolve)
 template <typename T>
 void        SLRModel<T>::setTimeLimit(float timeLimit)
 {
+    if (timeLimit < 0.f)
+        throw SLRException(30205, "SLRModel::setTimeLimit", "Time limit must be positive");
     _timeLimit = timeLimit;
 }
 

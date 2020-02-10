@@ -18,15 +18,6 @@ SLRExpr<T>::SLRExpr(const double &constant) : _varIndex(0), _constant(constant)
 
 }
 
-/*template <class T>
-SLRExpr<T>::SLRExpr(const SLRVar<T> &x) : _varIndex(0), _constant(0)
-{
-    _coeffs.push_back(1);
-    _vars.push_back(std::vector<std::shared_ptr<SLRVarRep<T>>>());
-    _vars.at(_varIndex).push_back(x._varRep);
-    _varIndex++;
-}*/
-
 //-----------------
 //        *
 //-----------------
@@ -226,39 +217,6 @@ void SLRExpr<T>::operator/=(const double &k)
     for (auto &coeff : _coeffs)
         coeff /= k;
     _constant /= k;
-}
-
-
-
-// simplify expression
-// ex : 2x + 2x will be 4x
-template <typename T>
-void    SLRExpr<T>::simplify()
-{
-    // tmp remove to win time
-    /*for (int i = _varIndex - 1; i >= 0; i--)
-    {
-        if (_vars[_varIndex].size() == _vars[i].size())
-        {
-            int tmp = 0;
-            for (tmp = 0; tmp < _vars[i].size() &&
-                          _vars[i][tmp] == _vars[_varIndex][tmp]; tmp++);
-            if (tmp == _vars[i].size())
-            {
-                _coeffs[i] += _coeffs[_varIndex];
-                _vars.erase(_vars.begin() + _varIndex);
-                _coeffs.erase(_coeffs.begin() + _varIndex);
-                _varIndex--;
-                if (_coeffs[i] == 0.0)
-                {
-                    _coeffs.erase(_coeffs.begin() + i);
-                    _vars.erase(_vars.begin() + i);
-                    _varIndex--;
-                }
-                return ;
-            }
-        }
-    }*/
 }
 
 template <typename T>

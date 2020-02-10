@@ -92,7 +92,7 @@ public:
     static bool sortbysec(const std::tuple<double, int, int>& ,
                           const std::tuple<double, int, int>& );
     void        setPresolve(int);
-    void        setNbThread(int);
+    void        setNbThread(unsigned int);
     void        setTimeLimit(float);
 
 #ifdef GRB
