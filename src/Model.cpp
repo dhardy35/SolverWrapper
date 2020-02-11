@@ -438,7 +438,7 @@ void    SLRModel<T>::optimize()
     //_settings.scaling = 0;
     //_settings.polish = 1;
     //_settings.max_iter = 10000;
-    //_settings.linsys_solver = MKL_PARDISO_SOLVER;
+    _settings.linsys_solver = MKL_PARDISO_SOLVER;
     _settings.verbose = _verbose;
     _settings.warm_start = _warmStart;
     _settings.time_limit = _timeLimit;
