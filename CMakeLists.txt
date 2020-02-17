@@ -20,7 +20,7 @@ include_directories(src/)
 
 #OSQP
 add_subdirectory(lib/osqp)
-target_link_libraries(${PROJECT_NAME} osqp)
+target_link_libraries(${PROJECT_NAME} PUBLIC osqp)
 
 #GUROBI
 if (BUILD_WITH_GRB)
