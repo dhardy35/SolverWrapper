@@ -17,6 +17,9 @@ add_library(${PROJECT_NAME} include/Model.h include/Variable.h include/Expressio
 #SLR
 include_directories(include/)
 include_directories(src/)
+if (WIN32)
+	target_link_libraries(${PROJECT_NAME} PUBLIC shlwapi)
+endif(WIN32)
 
 #OSQP
 add_subdirectory(lib/osqp)
@@ -30,7 +33,7 @@ if (BUILD_WITH_GRB)
 	set_property(TARGET SolverWrapper APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES $ENV{GUROBI_HOME}/include)
 	
 	if(WIN32)
-		target_link_libraries(${PROJECT_NAME} shlwapi   $ENV{GUROBI_HOME}/lib/gurobi${GRB_VERSION})
+		target_link_libraries(${PROJECT_NAME} 			$ENV{GUROBI_HOME}/lib/gurobi${GRB_VERSION})
 		target_link_libraries(${PROJECT_NAME} debug     $ENV{GUROBI_HOME}/lib/gurobi_c++mdd2017)
 		target_link_libraries(${PROJECT_NAME} optimized $ENV{GUROBI_HOME}/lib/gurobi_c++md2017)
 	else()
