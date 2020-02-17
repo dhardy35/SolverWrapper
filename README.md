@@ -20,8 +20,8 @@ Solver Numbers:
 02 = OSQP Solver
 
 Error Numbers :   
-01 = Variable name not known
+01 = Variable name not known  
 02 = only linear constraints are allowed  
-03 = Unknown type 
-04 = osqp_setup failed  
-05 = Time limit must be positive
+03 = Unknown type   
+04 = osqp_setup failed   
+05 = Time limit must be positive  
