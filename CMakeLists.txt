@@ -12,6 +12,12 @@ set(GRB_VERSIONS "80;81;90")
  
 set_property(CACHE GRB_VERSION PROPERTY STRINGS ${GRB_VERSIONS})
 
+#modifying install directory
+SET(CMAKE_INSTALL_LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+SET(CMAKE_INSTALL_BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+SET(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+
 add_library(${PROJECT_NAME} include/Model.h include/Variable.h include/Expression.h include/ConstraintExpression.h include/SLRException.h src/SLRException.cpp)
 
 #SLR
