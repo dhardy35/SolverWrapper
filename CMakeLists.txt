@@ -27,10 +27,6 @@ SET(CMAKE_INSTALL_BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 SET(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 SET(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/bin CACHE PATH "forcing install path" FORCE)
 
-#OSQP
-add_subdirectory(lib/osqp)
-target_link_libraries(${PROJECT_NAME} PUBLIC osqp)
-
 #GUROBI
 if (BUILD_WITH_GRB)
 	target_compile_options(SolverWrapper PRIVATE -DGRB)
@@ -45,6 +41,11 @@ if (BUILD_WITH_GRB)
 	else()
 		target_link_libraries(${PROJECT_NAME} -L/$ENV{GUROBI_HOME}/lib/ -lgurobi_c++ -lgurobi${GRB_VERSION})	
 	endif(WIN32)
+
+else()
+	#OSQP
+	add_subdirectory(lib/osqp)
+	target_link_libraries(${PROJECT_NAME} PUBLIC osqp)
 	
 endif(BUILD_WITH_GRB)
 
